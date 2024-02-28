@@ -13,5 +13,3 @@ Choose an AI algorithm for traffic classification (Maybe SVM)
 Setup data collection
 
 Generate the training sets
-
-T
