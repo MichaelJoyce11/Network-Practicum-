@@ -4,6 +4,17 @@ from socket import inet_ntoa, ntohs
 import socket
 import csv
 import datetime
+import warnings
+
+# Suppress DeprecationWarning for PY_SSIZE_T_CLEAN
+warnings.filterwarnings("ignore", category = DeprecationWarning)
+
+# Define protocol mapping
+PROTOCOL_MAP = {
+        1: "ICMP",
+        6: "TCP",
+        17: "UDP"
+}
 
 def process_packet(header, data):
     eth_length = 14
@@ -77,14 +88,13 @@ def process_packet(header, data):
             # Write packet information to CSV file
             with open('packet_info.csv', mode = 'a', newline = '') as file:
                 writer = csv.writer(file)
-                writer.writerow(['', '', '', '', 'ICMP', '', ''] + [icmp_type] + [''] * (len(flags) - 1)
+                writer.writerow(['', '', '', '', 'ICMP', '', ''] + [icmp_type] + [''] * (len(flags) - 1))
 
-if __name__ == "__main__":
-    # Set the network interface to capture packets
-    INTERFACE = "eth"
+# Set the network interface to capture packets
+interface = "eth0"
 
-    # Open the network interface in promiscuous mode
-    pcap = pcapy.open_live("eth0", 65536, True, 100)
+ # Open the network interface in promiscuous mode
+pcap = pcapy.open_live(interface, 65536, True, 100)
 
-    # Start capturing packets
-    pcap.loop(0, process_packet)
+# Start capturing packets
+pcap.loop(0, process_packet)
