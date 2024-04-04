@@ -30,29 +30,54 @@ def load_data(csv_normal_file, csv_ddos_file):
 
     return np.array(X), np.array(y)
 
-# Load data from CSV files
-csv_normal_file = input("Enter the file name of the normal traffic file (ex. normal_traffic.csv): ")
-csv_ddos_file = input("Enter the file name of the ddos traffic file (ex. ddos_traffic.csv): ")
-X, y = load_data(csv_normal_file, csv_ddos_file)
 
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+# Get the file names of
+csv_normal_file = input("Enter the file name of the normal traffic file excluding the prefix (ex. normal_traffic.csv): ")
+csv_ddos_file = input("Enter the file name of the ddos traffic file excluding the prefix (ex. ddos_traffic.csv): ")
+pkl_filename = input("Enter the file name of the training model (ex. svm_model.pkl): ")
 
-# Train SVM model
-clf = svm.SVC(kernel = 'linear')
-clf.fit(X_train, y_train)
+prefixes = ['udp_', 'tcp_', 'icmp_']
 
-# Save trained model to file
-model_file = 'svm_model.pkl'
-dump(clf, model_file)
+normal_traffic_files = {
+    'udp': prefixes[0] + csv_normal_file
+    'tcp': prefixes[1] + csv_normal_file
+    'icmp': prefixes[2] + csv_normal_file
+}
 
-# Predictions
-y_pred_train = slf.predict(X_train)
-y_pred_test = clf.predict(X_test)
+ddos_traffic_files = {
+    'udp': prefixes[0] + csv_ddos_file
+    'tcp': prefixes[1] + csv_ddos_file
+    'icmp': prefixes[2] + csv_ddos_file
+}
 
-# Evaluate model
-train_accuracy = accuracy_score(y_train, y_pred_train)
-test_accuracy = accuracy_score(y_test, y_pred_test)
+X_train = {}
+X_test = {}
+y_train = {}
+y_test = {}
+clf = {}
 
-print("Training Accuracy: ", train_accuracy)
-print("Testing Accuracy: ", test_accuracy)
+# Create a dataset for each protocol
+for protocol in normal_traffic_files:
+    X, y = load_data(normal_traffic_files[protocol], ddos_traffic_files[protocol])
+
+    # Split data into training and testing sets
+    X_train[protocol], X_test[protocol], y_train[protocol], y_test[protocol] = train_test_split(X, y, test_size = 0.2, random_state = 42)
+
+    # Train SVM model
+    clf[protocol] = svm.SVC(kernel = 'linear')
+    clf[protocol].fit(X_train[protocol], y_train[protocol])
+
+    # Save trained model to file
+    model_file = f'{protocol}_svm_model.pkl'
+    dump(clf[protocol], model_file)
+
+    # Predictions
+    y_pred_train = clf[protocol].predict(X_train[protocol])
+    y_pred_test = clf[protocol].predict(X_test[protocol])
+
+    # Evaluate model
+    train_accuracy = accuracy_score(y_train[protocol], y_pred_train)
+    test_accuracy = accuracy_score(y_test[protocol], y_pred_test)
+
+    print(f"Protocol: {protocol.upper()} - Training Accuracy: {train_accuracy}, Testing Accuracy: {test_accuracy}")
+
