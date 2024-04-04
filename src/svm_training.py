@@ -31,8 +31,8 @@ def load_data(csv_normal_file, csv_ddos_file):
     return np.array(X), np.array(y)
 
 # Load data from CSV files
-csv_normal_file = 'normal_traffic.csv'
-csv_ddos_file = 'ddos_traffic.csv'
+csv_normal_file = input("Enter the file name of the normal traffic file (ex. normal_traffic.csv): ")
+csv_ddos_file = input("Enter the file name of the ddos traffic file (ex. ddos_traffic.csv): ")
 X, y = load_data(csv_normal_file, csv_ddos_file)
 
 # Split data into training and testing sets
@@ -56,4 +56,3 @@ test_accuracy = accuracy_score(y_test, y_pred_test)
 
 print("Training Accuracy: ", train_accuracy)
 print("Testing Accuracy: ", test_accuracy)
-
