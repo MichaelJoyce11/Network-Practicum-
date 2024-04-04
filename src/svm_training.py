@@ -2,7 +2,7 @@ import csv
 import numpy as np
 from sklearn import svm
 from sklearn.model_selection import train_test_split
-from sklearn.metric import accuracy_score
+from sklearn.metrics import accuracy_score
 from joblib import dump
 
 # Load data from CSV file
@@ -24,7 +24,7 @@ def load_data(csv_normal_file, csv_ddos_file):
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            features = list(map(float, row[:-1]]))
+            features = list(map(float, row[:-1]))
             X.append(features)
             y.append(1)
 
