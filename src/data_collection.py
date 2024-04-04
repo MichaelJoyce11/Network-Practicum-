@@ -75,7 +75,9 @@ def process_packet(header, data, csv_filename):
         # Write packet information to CSV file
         with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
             writer = csv.writer(file)
-            writer.writerow([src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values()))
+            row_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values())
+            non_blank_data = [value for value in row_data if value != '']
+            writer.writerow(non_blank_data)
 
         # Parse UDP packets
         if iph[6] == 17:
@@ -87,7 +89,9 @@ def process_packet(header, data, csv_filename):
             # Write packet information to CSV file
             with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
                 writer = csv.writer(file)
-                writer.writerow(['', src_port, '', dst_port, 'UDP', '', ''] + [''] * len(flags))
+                row_data = ['', src_port, '', dst_port, 'UDP', '', ''] + [''] * len(flags)
+                non_blank_data = [value for value in row_data if value != '']
+                writer.writerow(non_blank_data)
 
         # Parse ICMP packets
         if iph[6] == 1:
@@ -98,7 +102,9 @@ def process_packet(header, data, csv_filename):
             # Write packet information to CSV file
             with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
                 writer = csv.writer(file)
-                writer.writerow(['', '', '', '', 'ICMP', '', ''] + [icmp_type] + [''] * (len(flags) - 1))
+                row_data = ['', '', '', '', 'ICMP', '', ''] + [icmp_type] + [''] * (len(flags) - 1)
+                non_blank_data = [value for value in row_data if value != '']
+                writer.writerow(non_blank_data)
 
 # Set the network interface to capture packets
 interface = "eth0"
