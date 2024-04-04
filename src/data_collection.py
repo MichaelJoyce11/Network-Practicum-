@@ -16,7 +16,7 @@ PROTOCOL_MAP = {
         17: "UDP"
 }
 
-def process_packet(header, data):
+def process_packet(header, data, csv_filename):
     eth_length = 14
 
     # Extract ethernet header
@@ -63,7 +63,7 @@ def process_packet(header, data):
         timestamp = datetime.datetime.now()
 
         # Write packet information to CSV file
-        with open('packet_info.csv', mode = 'a', newline = '') as file:
+        with open(csv_filename, mode = 'a', newline = '') as file:
             writer = csv.writer(file)
             writer.writerow([src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values()))
 
@@ -75,7 +75,7 @@ def process_packet(header, data):
             dst_port = udph[1]
 
             # Write packet information to CSV file
-            with open('packet_info.csv', mode = 'a', newline = '') as file:
+            with open(csv_filename, mode = 'a', newline = '') as file:
                 writer = csv.writer(file)
                 writer.writerow(['', src_port, '', dst_port, 'UDP', '', ''] + [''] * len(flags))
 
@@ -86,12 +86,15 @@ def process_packet(header, data):
             icmp_type = icmph[0]
 
             # Write packet information to CSV file
-            with open('packet_info.csv', mode = 'a', newline = '') as file:
+            with open(csv_filename, mode = 'a', newline = '') as file:
                 writer = csv.writer(file)
                 writer.writerow(['', '', '', '', 'ICMP', '', ''] + [icmp_type] + [''] * (len(flags) - 1))
 
 # Set the network interface to capture packets
 interface = "eth0"
+
+# Get the CSV file name from the user
+csv_filename = input("Enter the CSV filename (ex. packet_info.csv): ")
 
  # Open the network interface in promiscuous mode
 pcap = pcapy.open_live(interface, 65536, True, 100)
