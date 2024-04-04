@@ -40,6 +40,16 @@ def process_packet(header, data, csv_filename):
         # Parse protocol
         protocol = PROTOCOL_MAP.get(iph[6], "Unknown")
 
+        #Set appropriate header string to separate packet types
+        if iph[6] == 6:
+            csv_filename_prefix = "tcp_"
+        elif iph[6] == 17:
+            csv_filename_prefix = "udp_"
+        elif iph[6] == 1:
+            csv_filename_prefix = "icmp_"
+        else:
+            csv_filename_prefix = ""
+
         # Parse TCP packets
         if iph[6] == 6:
             tcp_header = data[iph_length+eth_length:iph_length+eth_length+20]
@@ -63,7 +73,7 @@ def process_packet(header, data, csv_filename):
         timestamp = datetime.datetime.now()
 
         # Write packet information to CSV file
-        with open(csv_filename, mode = 'a', newline = '') as file:
+        with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
             writer = csv.writer(file)
             writer.writerow([src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values()))
 
@@ -75,7 +85,7 @@ def process_packet(header, data, csv_filename):
             dst_port = udph[1]
 
             # Write packet information to CSV file
-            with open(csv_filename, mode = 'a', newline = '') as file:
+            with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
                 writer = csv.writer(file)
                 writer.writerow(['', src_port, '', dst_port, 'UDP', '', ''] + [''] * len(flags))
 
@@ -86,7 +96,7 @@ def process_packet(header, data, csv_filename):
             icmp_type = icmph[0]
 
             # Write packet information to CSV file
-            with open(csv_filename, mode = 'a', newline = '') as file:
+            with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
                 writer = csv.writer(file)
                 writer.writerow(['', '', '', '', 'ICMP', '', ''] + [icmp_type] + [''] * (len(flags) - 1))
 
@@ -101,3 +111,4 @@ pcap = pcapy.open_live(interface, 65536, True, 100)
 
 # Start capturing packets
 pcap.loop(0, lambda header, data: process_packet(header, data, csv_filename))
+
