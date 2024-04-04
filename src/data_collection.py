@@ -100,4 +100,4 @@ csv_filename = input("Enter the CSV filename (ex. packet_info.csv): ")
 pcap = pcapy.open_live(interface, 65536, True, 100)
 
 # Start capturing packets
-pcap.loop(0, process_packet)
+pcap.loop(0, lambda header, data: process_packet(header, data, csv_filename))
