@@ -91,10 +91,13 @@ def process_packet(header, data, csv_filename):
 
 
             row_data = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+        try:
+            with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
+                writer = csv.writer(file)
+                writer.writerow(row_data)
 
-        with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
-            writer = csv.writer(file)
-            writer.writerow(row_data)
+        except OSError as e:
+            print(f'Error occured while writing to CSV file: {e}')
 
 # Set the network interface to capture packets
 interface = "eth0"
