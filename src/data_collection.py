@@ -40,6 +40,15 @@ def process_packet(header, data, csv_filename):
         # Parse protocol
         protocol = PROTOCOL_MAP.get(iph[6], "Unknown")
 
+        # Calculate packet size
+        packet_size = len(data)
+
+        # Get current timestamp
+        timestamp = datetime.datetime.now()
+
+        # Set Row Data
+        row_data = None
+
         #Set appropriate header string to separate packet types
         if iph[6] == 6:
             csv_filename_prefix = "tcp_"
@@ -50,8 +59,9 @@ def process_packet(header, data, csv_filename):
         else:
             csv_filename_prefix = ""
 
+
         # Parse TCP packets
-        if iph[6] == 6:
+        if iph [6] == 6:
             tcp_header = data[iph_length+eth_length:iph_length+eth_length+20]
             tcph = unpack('!HHLLBBHHH', tcp_header)
             flags = {
@@ -61,50 +71,30 @@ def process_packet(header, data, csv_filename):
                     }
             src_port = tcph[0]
             dst_port = tcph[1]
-        else:
-            flags = {}
-            src_port = None
-            dst_port = None
 
-        # Calculate packet size
-        packet_size = len(data)
-
-        # Get current timestamp
-        timestamp = datetime.datetime.now()
-
-        # Write packet information to CSV file
-        with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
-            writer = csv.writer(file)
             row_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values())
-            non_blank_data = [value for value in row_data if value != '']
-            writer.writerow(non_blank_data)
 
         # Parse UDP packets
-        if iph[6] == 17:
+        elif iph[6] == 17:
             udp_header = data[iph_length+eth_length:iph_length+eth_length+8]
             udph = unpack('!HHHH', udp_header)
             src_port = udph[0]
             dst_port = udph[1]
 
-            # Write packet information to CSV file
-            with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
-                writer = csv.writer(file)
-                row_data = ['', src_port, '', dst_port, 'UDP', '', ''] + [''] * len(flags)
-                non_blank_data = [value for value in row_data if value != '']
-                writer.writerow(non_blank_data)
+            row_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp]
 
         # Parse ICMP packets
-        if iph[6] == 1:
+        elif iph[6] == 1:
             icmp_header = data[iph_length+eth_length:iph_length+eth_length+4]
             icmph = unpack('!BBH', icmp_header)
             icmp_type = icmph[0]
 
-            # Write packet information to CSV file
-            with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
-                writer = csv.writer(file)
-                row_data = ['', '', '', '', 'ICMP', '', ''] + [icmp_type] + [''] * (len(flags) - 1)
-                non_blank_data = [value for value in row_data if value != '']
-                writer.writerow(non_blank_data)
+
+            row_data = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+
+        with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
+            writer = csv.writer(file)
+            writer.writerow(row_data)
 
 # Set the network interface to capture packets
 interface = "eth0"
