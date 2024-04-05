@@ -65,10 +65,15 @@ def process_packet(header, data, csv_filename):
             tcp_header = data[iph_length+eth_length:iph_length+eth_length+20]
             tcph = unpack('!HHLLBBHHH', tcp_header)
             flags = {
-                    "SYN": (tcph[5] & 0x02) != 0,
-                    "ACK": (tcph[5] & 0x10) != 0,
-                    "FIN": (tcph[5] & 0x01) != 0
-                    }
+                "FIN": (tcph[5] & 0x01) != 0,
+                "SYN": (tcph[5] & 0x02) != 0,
+                "RST": (tcph[5] & 0x04) != 0,
+                "PSH": (tcph[5] & 0x08) != 0,
+                "ACK": (tcph[5] & 0x10) != 0,
+                "URG": (tcph[5] & 0x20) != 0,
+                "ECE": (tcph[5] & 0x40) != 0,
+                "CWR": (tcph[5] & 0x80) != 0
+            }
             src_port = tcph[0]
             dst_port = tcph[1]
 
