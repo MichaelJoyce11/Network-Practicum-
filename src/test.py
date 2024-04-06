@@ -113,26 +113,27 @@ for prefix in prefixes:
         elif prefix == "icmp":
             X[prefix], y[prefix] = load_icmp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
 
-        # Split data into training and testing sets
-        X_train[prefix], X_test[prefix], y_train[prefix], y_test[prefix] = train_test_split(X[prefix], y[prefix], test_size = 0.2, random_state = 42)
+            # Split data into training and testing sets
+            X_train[prefix], X_test[prefix], y_train[prefix], y_test[prefix] = train_test_split(X[prefix], y[prefix], test_size = 0.2, random_state = 42)
 
-        # Train SVM model
-        clf[prefix] = svm.SVC(kernel = 'linear')
-        clf[prefix].fit(X_train[prefix], y_train[prefix])
+            # Train SVM model
+            clf[prefix] = svm.SVC(kernel = 'linear')
+            clf[prefix].fit(X_train[prefix], y_train[prefix])
 
-        # Save trained model to file
-        model_file = f'{prefix}_svm_model.pkl'
-        dump(clf[prefix], model_file)
+            # Save trained model to file
+            model_file = f'{prefix}_svm_model.pkl'
+            dump(clf[prefix], model_file)
 
-        # Predictions
-        y_pred_train = clf[prefix].predict(X_train[prefix])
-        y_pred_test = clf[prefix].predict(X_test[prefix])
+            # Predictions
+            y_pred_train = clf[prefix].predict(X_train[prefix])
+            y_pred_test = clf[prefix].predict(X_test[prefix])
 
-        # Evaluate model
-        train_accuracy = accuracy_score(y_train[prefix], y_pred_train)
-        test_accuracy = accuracy_score(y_test[prefix], y_pred_test)
+            # Evaluate model
+            train_accuracy = accuracy_score(y_train[prefix], y_pred_train)
+            test_accuracy = accuracy_score(y_test[prefix], y_pred_test)
 
-        print(f"Protocol: {prefix.upper()} - Training Accuracy: {train_accuracy}, Testing Accuracy: {test_accuracy}")
+            print(f"Protocol: {prefix.upper()} - Training Accuracy: {train_accuracy}, Testing Accuracy: {test_accuracy}")
 
     except FileNotFoundError:
         print(f'File not found for protocol {prefix.upper()}, Skipping...')
+
