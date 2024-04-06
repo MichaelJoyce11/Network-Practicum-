@@ -22,16 +22,16 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            # Preform encoding and float change on packet data
+            # Perform encoding and float conversion on packet data
             src_ip = encoder.fit_transform(np.array([row[0]]).reshape(-1, 1))
             dst_ip = encoder.fit_transform(np.array([row[1]]).reshape(-1, 1))
             protocol = encoder.fit_transform(np.array([row[2]]).reshape(-1, 1))
-            packet_size = float(row[3])
+            packet_size = np.array([float(row[3])]).reshape(-1, 1)  # Reshape to make it 2D
             timestamp = encoder.fit_transform(np.array([row[4]]).reshape(-1, 1))
-            icmp_type = float(row[5])
+            icmp_type = np.array([float(row[5])]).reshape(-1, 1)  # Reshape to make it 2D
 
             # Combine the encoded and float changed values into a list
-            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type])
+            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type], axis=1)  # Concatenate along columns
             X.append(features)
             y.append(0)
 
@@ -40,20 +40,21 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            # Preform encoding and float change on packet data
+            # Perform encoding and float conversion on packet data
             src_ip = encoder.fit_transform(np.array([row[0]]).reshape(-1, 1))
             dst_ip = encoder.fit_transform(np.array([row[1]]).reshape(-1, 1))
             protocol = encoder.fit_transform(np.array([row[2]]).reshape(-1, 1))
-            packet_size = float(row[3])
+            packet_size = np.array([float(row[3])]).reshape(-1, 1)  # Reshape to make it 2D
             timestamp = encoder.fit_transform(np.array([row[4]]).reshape(-1, 1))
-            icmp_type = float(row[5])
+            icmp_type = np.array([float(row[5])]).reshape(-1, 1)  # Reshape to make it 2D
 
             # Combine the encoded and float changed values into a list
-            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type])
+            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type], axis=1)  # Concatenate along columns
             X.append(features)
-            y.append(0)
+            y.append(1)
     
     return np.array(X), np.array(y)
+
 
 
 # Get the file names of the CSV files excluding the prefix
