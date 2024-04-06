@@ -103,19 +103,13 @@ for prefix in prefixes:
             #X[prefix], y[prefix] = load_udp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
         elif prefix == "tcp":
             X[prefix], y[prefix] = load_tcp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
-            columns_to_encode = [0, 1, -2]
+            columns_to_encode = [0, 2,5]
             encoder = OneHotEncoder(sparse_output=False)
 
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
 
             # Apply OneHotEncoding
             X[prefix] = ct.fit_transform(X[prefix])
-
-
-
-
-
-            
 
         elif prefix == "icmp":
             X[prefix], y[prefix] = load_icmp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
