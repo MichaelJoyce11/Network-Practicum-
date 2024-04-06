@@ -11,7 +11,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
     X = []
     y = []
 
-    encoder = OneHotEncoder(sparse=False)
+    encoder = OneHotEncoder(sparse_output=False)
     
     # Load data for icmp normal traffic
     with open(csv_normal_file, 'r') as file:
