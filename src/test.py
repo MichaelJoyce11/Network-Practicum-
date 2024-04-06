@@ -17,7 +17,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
 
     src_ips = []
     dst_ips = []
-    protocols = []
+    # Remove the 'protocols' list as it only contains one unique value
     packet_sizes = []
     timestamps = []
     icmp_types = []
@@ -32,7 +32,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
             # Parse data from CSV file and add to arrays for further processing
             src_ips.append(row[0])
             dst_ips.append(row[1])
-            protocols.append(row[2])
+            # No need to append 'protocols' as it only contains one unique value
             packet_sizes.append(row[3])
             timestamps.append(row[4])
             icmp_types.append(row[5])
@@ -46,22 +46,21 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
             # Parse data from CSV file and add to arrays for further processing
             src_ips.append(row[0])
             dst_ips.append(row[1])
-            protocols.append(row[2])
+            # No need to append 'protocols' as it only contains one unique value
             packet_sizes.append(row[3])
             timestamps.append(row[4])
             icmp_types.append(row[5])
             y.append(1)
 
     # Fit OneHotEncoder on all categorical features
-    encoder.fit(np.concatenate([np.array(src_ips).reshape(-1, 1),
-                                np.array(dst_ips).reshape(-1, 1),
-                                np.array(protocols).reshape(-1, 1),
-                                np.array(timestamps).reshape(-1, 1)], axis=0))
+    X_categorical = np.concatenate([np.array(src_ips).reshape(-1, 1),
+                                    np.array(dst_ips).reshape(-1, 1),
+                                    np.array(timestamps).reshape(-1, 1)], axis=1)
+    encoder.fit(X_categorical)
 
     # Encode categorical features
     src_ips_encoded = encoder.transform(np.array(src_ips).reshape(-1, 1))
     dst_ips_encoded = encoder.transform(np.array(dst_ips).reshape(-1, 1))
-    protocols_encoded = encoder.transform(np.array(protocols).reshape(-1, 1))
     timestamps_encoded = encoder.transform(np.array(timestamps).reshape(-1, 1))
     
     # Convert packet sizes and icmp types to float
@@ -70,13 +69,11 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
 
     # Combine encoded features with float features
     for i in range(len(y)):
-        features = np.hstack([src_ips_encoded[i], dst_ips_encoded[i], protocols_encoded[i],
+        features = np.hstack([src_ips_encoded[i], dst_ips_encoded[i],
                               packet_sizes_float[i], timestamps_encoded[i], icmp_types_float[i]])
         X.append(features)
 
     return np.array(X), np.array(y)
-
-
 
 
 # Get the file names of the CSV files excluding the prefix
