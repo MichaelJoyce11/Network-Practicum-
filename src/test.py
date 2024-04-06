@@ -15,26 +15,23 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
     X = []
     y = []
 
-    src_ips = []
-    dst_ips = []
-    protocols = []
+    src_ips = set()
+    dst_ips = set()
+    protocols = set()
     packet_sizes = []
-    timestamps = []
+    timestamps = set()
     icmp_types = []
 
-    encoder = OneHotEncoder(sparse_output=False)
-    
     # Load data for icmp normal traffic
     with open(csv_normal_file, 'r') as file:
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            # Parse data from CSV file and add to arrays for further processing
-            src_ips.append(row[0])
-            dst_ips.append(row[1])
-            protocols.append(row[2])
+            src_ips.add(row[0])
+            dst_ips.add(row[1])
+            protocols.add(row[2])
             packet_sizes.append(row[3])
-            timestamps.append(row[4])
+            timestamps.add(row[4])
             icmp_types.append(row[5])
             y.append(0)
 
@@ -43,27 +40,27 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            # Parse data from CSV file and add to arrays for further processing
-            src_ips.append(row[0])
-            dst_ips.append(row[1])
-            protocols.append(row[2])
+            src_ips.add(row[0])
+            dst_ips.add(row[1])
+            protocols.add(row[2])
             packet_sizes.append(row[3])
-            timestamps.append(row[4])
+            timestamps.add(row[4])
             icmp_types.append(row[5])
             y.append(1)
 
     # Fit OneHotEncoder on all categorical features
-    X_categorical = np.concatenate([np.array(src_ips).reshape(-1, 1),
-                                    np.array(dst_ips).reshape(-1, 1),
-                                    np.array(protocols).reshape(-1, 1),
-                                    np.array(timestamps).reshape(-1, 1)], axis=1)
+    encoder = OneHotEncoder(sparse_output=False)
+    X_categorical = np.concatenate([np.array(list(src_ips)).reshape(-1, 1),
+                                    np.array(list(dst_ips)).reshape(-1, 1),
+                                    np.array(list(protocols)).reshape(-1, 1),
+                                    np.array(list(timestamps)).reshape(-1, 1)], axis=1)
     encoder.fit(X_categorical)
 
     # Encode categorical features
-    src_ips_encoded = encoder.transform(np.array(src_ips).reshape(-1, 1))
-    dst_ips_encoded = encoder.transform(np.array(dst_ips).reshape(-1, 1))
-    protocols_encoded = encoder.transform(np.array(protocols).reshape(-1, 1))
-    timestamps_encoded = encoder.transform(np.array(timestamps).reshape(-1, 1))
+    src_ips_encoded = encoder.transform(np.array(list(src_ips)).reshape(-1, 1))
+    dst_ips_encoded = encoder.transform(np.array(list(dst_ips)).reshape(-1, 1))
+    protocols_encoded = encoder.transform(np.array(list(protocols)).reshape(-1, 1))
+    timestamps_encoded = encoder.transform(np.array(list(timestamps)).reshape(-1, 1))
     
     # Convert packet sizes and icmp types to float
     packet_sizes_float = np.array(packet_sizes, dtype=float).reshape(-1, 1)
