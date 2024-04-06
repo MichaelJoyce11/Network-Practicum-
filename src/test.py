@@ -5,12 +5,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from joblib import dump
 
-# Load data from CSV file
-def load_icmp_data(csv_normal_file, csv_ddos_file):
+# Load data from UDP CSV file
+def load_udp_data(csv_normal_file, csv_ddos_file):
     X = []
     y = []
 
-    # Load data for normal traffic
+    # Load data for udp normal traffic
     with open(csv_normal_file, 'r') as file:
         reader = csv.reader(file)
         next(reader)
@@ -19,7 +19,57 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
             X.append(features)
             y.append(0) # 0 means normal traffic
 
-    # Load data for ddos traffic
+    # Load data for udp ddos traffic
+    with open(csv_ddos_file, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            features = list(map(float, row[:-1]))
+            X.append(features)
+            y.append(1)
+
+    return np.array(X), np.array(y)
+
+# Load data from TCP CSV file
+def load_tcp_data(csv_normal_file, csv_ddos_file):
+    X = []
+    y = []
+
+    # Load data for tcp normal traffic
+    with open(csv_normal_file, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            features = list(map(float, row[:-1]))
+            X.append(features)
+            y.append(0) # 0 means normal traffic
+
+    # Load data for tcp ddos traffic
+    with open(csv_ddos_file, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            features = list(map(float, row[:-1]))
+            X.append(features)
+            y.append(1)
+
+    return np.array(X), np.array(y)
+
+# Load data from ICMP CSV file
+def load_icmp_data(csv_normal_file, csv_ddos_file):
+    X = []
+    y = []
+
+    # Load data for icmp normal traffic
+    with open(csv_normal_file, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            features = list(map(float, row[:-1]))
+            X.append(features)
+            y.append(0) # 0 means normal traffic
+
+    # Load data for icmp ddos traffic
     with open(csv_ddos_file, 'r') as file:
         reader = csv.reader(file)
         next(reader)
@@ -31,7 +81,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
     return np.array(X), np.array(y)
 
 
-# Get the file names of
+# Get the file names of the CSV files excluding the prefix
 csv_normal_file = input("Enter the file name of the normal traffic file excluding the prefix (ex. normal_traffic.csv): ")
 csv_ddos_file = input("Enter the file name of the ddos traffic file excluding the prefix (ex. ddos_traffic.csv): ")
 pkl_filename = input("Enter the file name of the training model (ex. svm_model.pkl): ")
@@ -40,7 +90,7 @@ prefixes = ['udp', 'tcp', 'icmp']
 normal_traffic_files = {}
 ddos_traffic_files = {}
 
-
+# Create dictionary for file names for easy access
 for prefix in prefixes:
     normal_traffic_files[prefix] = prefix + "_" + csv_normal_file
     ddox_traffic_files[prefix] = prefix + "_" + csv_ddos_file
