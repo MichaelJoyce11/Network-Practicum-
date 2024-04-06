@@ -31,7 +31,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
             icmp_type = float(row[5])
 
             # Combine the encoded and float changed values into a list
-            features = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type])
             X.append(features)
             y.append(0)
 
@@ -49,7 +49,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
             icmp_type = float(row[5])
 
             # Combine the encoded and float changed values into a list
-            features = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type])
             X.append(features)
             y.append(0)
     
