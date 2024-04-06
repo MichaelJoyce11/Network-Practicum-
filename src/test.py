@@ -24,7 +24,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[2], row[3], row[4]]  # Include all columns
+            features = [row[0], row[1], row[3], row[4], row[5]]  # Include all columns
             X.append(features)
             y.append(0)
 
@@ -34,7 +34,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[2], row[3], row[4]]  # Include all columns
+            features = [row[0], row[1], row[3], row[4], row[5]]  # Include all columns
             X.append(features)
             y.append(1)
 
