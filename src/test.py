@@ -108,7 +108,7 @@ for prefix in prefixes:
     try:
         if prefix == "udp":
             X[prefix], y[prefix] = load_udp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
-        elif prefix == "tcp")
+        elif prefix == "tcp":
             X[prefix], y[prefix] = load_tcp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix]))
         elif prefix == "icmp":
             X[prefix], y[prefix] = load_icmp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
