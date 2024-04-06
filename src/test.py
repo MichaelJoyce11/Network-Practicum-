@@ -24,7 +24,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
             dst_ips.append(row[1])
             protocol_types.append(row[2])
             
-            features = list(map(float, row[2:-1]))
+            features = list(map(float, row[3:-1]))
             X.append(features)
             y.append(0)
 
@@ -37,7 +37,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
             dst_ips.append(row[1])
             protocol_types.append(row[2])
             
-            features = list(map(float, row[2:-1]))
+            features = list(map(float, row[3:-1]))
             X.append(features)
             y.append(1)
     
