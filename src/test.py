@@ -11,6 +11,37 @@ import warnings
 # Ignore warning saying that for OneHotEncoder sparse_output will be changed in the future
 warnings.filterwarnings("ignore", category=FutureWarning, message="`sparse` was renamed to `sparse_output`.*")
 
+# Load data from TCP CSV file
+def load_tcp_data(csv_normal_file, csv_ddos_file):
+    X = []
+    y = []
+
+    encoder = OneHotEncoder(sparse_output=False)
+    
+    # Load data for tcp normal traffic
+    with open(csv_normal_file, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            # Parse data from CSV file and add to arrays for further processing
+            features = [row[0], row[1], row[3], row[4], row[5]]
+            X.append(features)
+            y.append(0)
+
+    # Load data for tcp ddos traffic
+    with open(csv_ddos_file, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            # Parse data from CSV file and add to arrays for further processing
+            features = [row[0], row[1], row[3], row[4], row[5]]
+            X.append(features)
+            y.append(1)
+
+    return np.array(X), np.array(y)
+
+
+
 # Load data from ICMP CSV file
 def load_icmp_data(csv_normal_file, csv_ddos_file):
     X = []
@@ -24,7 +55,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[3], row[4], row[5]]  # Include all columns
+            features = [row[0], row[1], row[3], row[4], row[5]]
             X.append(features)
             y.append(0)
 
@@ -34,7 +65,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[3], row[4], row[5]]  # Include all columns
+            features = [row[0], row[1], row[3], row[4], row[5]]
             X.append(features)
             y.append(1)
 
