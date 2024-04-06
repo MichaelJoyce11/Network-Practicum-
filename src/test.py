@@ -67,12 +67,9 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
           timestamp = timestamps_encoded[i].reshape(1, -1)
           icmp_type = icmp_types_encoded[i].reshape(1, -1)
 
-          features = np.hstack([
-          
-    
+          features = np.hstack([src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp])
+          X.append(features)
 
-    
-    
     return np.array(X), np.array(y)
 
 
