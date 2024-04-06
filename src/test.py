@@ -5,6 +5,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 from joblib import dump
+import warnings
+
+# Ignore warning saying that for OneHotEncoder sparse_output will be changed in the future
+warnings.filterwarnings("ignore", category=FutureWarning, message="`sparse` was renamed to `sparse_output`.*")
 
 # Load data from ICMP CSV file
 def load_icmp_data(csv_normal_file, csv_ddos_file):
