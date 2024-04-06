@@ -3,57 +3,8 @@ import numpy as np
 from sklearn import svm
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import OneHotEncoder
 from joblib import dump
-
-# Load data from UDP CSV file
-def load_udp_data(csv_normal_file, csv_ddos_file):
-    X = []
-    y = []
-
-    # Load data for udp normal traffic
-    with open(csv_normal_file, 'r') as file:
-        reader = csv.reader(file)
-        next(reader)
-        for row in reader:
-            features = list(map(float, row[:-1]))
-            X.append(features)
-            y.append(0) # 0 means normal traffic
-
-    # Load data for udp ddos traffic
-    with open(csv_ddos_file, 'r') as file:
-        reader = csv.reader(file)
-        next(reader)
-        for row in reader:
-            features = list(map(float, row[:-1]))
-            X.append(features)
-            y.append(1)
-
-    return np.array(X), np.array(y)
-
-# Load data from TCP CSV file
-def load_tcp_data(csv_normal_file, csv_ddos_file):
-    X = []
-    y = []
-
-    # Load data for tcp normal traffic
-    with open(csv_normal_file, 'r') as file:
-        reader = csv.reader(file)
-        next(reader)
-        for row in reader:
-            features = list(map(float, row[:-1]))
-            X.append(features)
-            y.append(0) # 0 means normal traffic
-
-    # Load data for tcp ddos traffic
-    with open(csv_ddos_file, 'r') as file:
-        reader = csv.reader(file)
-        next(reader)
-        for row in reader:
-            features = list(map(float, row[:-1]))
-            X.append(features)
-            y.append(1)
-
-    return np.array(X), np.array(y)
 
 # Load data from ICMP CSV file
 def load_icmp_data(csv_normal_file, csv_ddos_file):
@@ -62,6 +13,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
 
     src_ips = []
     dst_ips = []
+    protocol_types = []
 
     # Load data for icmp normal traffic
     with open(csv_normal_file, 'r') as file:
@@ -70,6 +22,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         for row in reader:
             src_ips.append(row[0])
             dst_ips.append(row[1])
+            protocol_types.append(row[2])
             
             features = list(map(float, row[2:-1]))
             X.append(features)
@@ -82,12 +35,21 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         for row in reader:
             src_ips.append(row[0])
             dst_ips.append(row[1])
-
-            src_ips.append
+            protocol_types.append(row[2])
+            
             features = list(map(float, row[2:-1]))
             X.append(features)
             y.append(1)
+    
+    encoder = OneHotEncoder(sparse=False)
+    src_ip_encoded = encoder.fit_transform(np.array(src_ips).reshape(-1, 1))
+    dst_ip_encoded = encoder.fit_transform(np.array(dst_ips).reshape(-1, 1))
+    protocol_type_encoded = encoder.fit_transform(np.array(protocol_types).reshape(-1, 1))
 
+    for i in range(len(X)):
+        combined_features = src_ip_encoded[i].tolist() + dst_ip_encoded[i].tolist() + protocol_type_encoded.tolist() + X[i]
+        X[i] = combined_features
+    
     return np.array(X), np.array(y)
 
 
