@@ -23,15 +23,15 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Perform encoding and float conversion on packet data
-            src_ip = encoder.fit_transform(np.array([row[0]]).reshape(-1, 1))
-            dst_ip = encoder.fit_transform(np.array([row[1]]).reshape(-1, 1))
-            protocol = encoder.fit_transform(np.array([row[2]]).reshape(-1, 1))
-            packet_size = np.array([float(row[3])]).reshape(-1, 1)  # Reshape to make it 2D
-            timestamp = encoder.fit_transform(np.array([row[4]]).reshape(-1, 1))
-            icmp_type = np.array([float(row[5])]).reshape(-1, 1)  # Reshape to make it 2D
+            src_ip = encoder.fit_transform([[row[0]]]).toarray()  # Convert to array
+            dst_ip = encoder.fit_transform([[row[1]]]).toarray()  # Convert to array
+            protocol = encoder.fit_transform([[row[2]]]).toarray()  # Convert to array
+            packet_size = np.array([[float(row[3])]])  # Ensure 2D array
+            timestamp = encoder.fit_transform([[row[4]]]).toarray()  # Convert to array
+            icmp_type = np.array([[float(row[5])]])  # Ensure 2D array
 
             # Combine the encoded and float changed values into a list
-            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type], axis=1)  # Concatenate along columns
+            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type], axis=1)
             X.append(features)
             y.append(0)
 
@@ -41,19 +41,20 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Perform encoding and float conversion on packet data
-            src_ip = encoder.fit_transform(np.array([row[0]]).reshape(-1, 1))
-            dst_ip = encoder.fit_transform(np.array([row[1]]).reshape(-1, 1))
-            protocol = encoder.fit_transform(np.array([row[2]]).reshape(-1, 1))
-            packet_size = np.array([float(row[3])]).reshape(-1, 1)  # Reshape to make it 2D
-            timestamp = encoder.fit_transform(np.array([row[4]]).reshape(-1, 1))
-            icmp_type = np.array([float(row[5])]).reshape(-1, 1)  # Reshape to make it 2D
+            src_ip = encoder.fit_transform([[row[0]]]).toarray()  # Convert to array
+            dst_ip = encoder.fit_transform([[row[1]]]).toarray()  # Convert to array
+            protocol = encoder.fit_transform([[row[2]]]).toarray()  # Convert to array
+            packet_size = np.array([[float(row[3])]])  # Ensure 2D array
+            timestamp = encoder.fit_transform([[row[4]]]).toarray()  # Convert to array
+            icmp_type = np.array([[float(row[5])]])  # Ensure 2D array
 
             # Combine the encoded and float changed values into a list
-            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type], axis=1)  # Concatenate along columns
+            features = np.concatenate([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type], axis=1)
             X.append(features)
             y.append(1)
     
     return np.array(X), np.array(y)
+
 
 
 
