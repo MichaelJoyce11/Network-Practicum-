@@ -15,13 +15,6 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
     X = []
     y = []
 
-    src_ips = []
-    dst_ips = []
-    protocols = []
-    packet_sizes = []
-    timestamps = []
-    icmp_types = []
-
     encoder = OneHotEncoder(sparse_output=False)
     
     # Load data for icmp normal traffic
@@ -30,12 +23,8 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            src_ips.append(row[0])
-            dst_ips.append(row[1])
-            protocols.append(row[2])
-            packet_sizes.append(row[3])
-            timestamps.append(row[4])
-            icmp_types.append(row[5])
+            features = list(row[:-1])
+            X.append(features)
             y.append(0)
 
     # Load data for icmp ddos traffic
@@ -44,29 +33,9 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            src_ips.append(row[0])
-            dst_ips.append(row[1])
-            protocols.append(row[2])
-            packet_sizes.append(row[3])
-            timestamps.append(row[4])
-            icmp_types.append(row[5])
-            y.append(1)
-
-    # Fit OneHotEncoder on each categorical feature separately
-    src_ips_encoded = encoder.fit_transform(np.array(src_ips).reshape(-1, 1))
-    dst_ips_encoded = encoder.fit_transform(np.array(dst_ips).reshape(-1, 1))
-    protocols_encoded = encoder.fit_transform(np.array(protocols).reshape(-1, 1))
-    timestamps_encoded = encoder.fit_transform(np.array(timestamps).reshape(-1, 1))
-    
-    # Convert packet sizes and icmp types to float
-    packet_sizes_float = np.array(packet_sizes, dtype=float).reshape(-1, 1)
-    icmp_types_float = np.array(icmp_types, dtype=float).reshape(-1, 1)
-
-    # Combine encoded features with float features
-    for i in range(len(y)):
-        features = np.hstack([src_ips_encoded[i], dst_ips_encoded[i], protocols_encoded[i],
-                              packet_sizes_float[i], timestamps_encoded[i], icmp_types_float[i]])
-        X.append(features)
+            features = list(row[:-1])
+            X.append(features)
+            y.append(0)
 
     return np.array(X), np.array(y)
 
