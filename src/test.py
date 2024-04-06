@@ -60,21 +60,31 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
     X = []
     y = []
 
+    src_ips = []
+    dst_ips = []
+
     # Load data for icmp normal traffic
     with open(csv_normal_file, 'r') as file:
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            features = list(map(float, row[:-1]))
+            src_ips.append(row[0])
+            dst_ips.append(row[1])
+            
+            features = list(map(float, row[2:-1]))
             X.append(features)
-            y.append(0) # 0 means normal traffic
+            y.append(0)
 
     # Load data for icmp ddos traffic
     with open(csv_ddos_file, 'r') as file:
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            features = list(map(float, row[:-1]))
+            src_ips.append(row[0])
+            dst_ips.append(row[1])
+
+            src_ips.append
+            features = list(map(float, row[2:-1]))
             X.append(features)
             y.append(1)
 
@@ -93,7 +103,7 @@ ddos_traffic_files = {}
 # Create dictionary for file names for easy access
 for prefix in prefixes:
     normal_traffic_files[prefix] = prefix + "_" + csv_normal_file
-    ddox_traffic_files[prefix] = prefix + "_" + csv_ddos_file
+    ddos_traffic_files[prefix] = prefix + "_" + csv_ddos_file
 
 X = {}
 y = {}
@@ -107,9 +117,11 @@ clf = {}
 for prefix in prefixes:
     try:
         if prefix == "udp":
-            X[prefix], y[prefix] = load_udp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
+            continue
+            #X[prefix], y[prefix] = load_udp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
         elif prefix == "tcp":
-            X[prefix], y[prefix] = load_tcp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix]))
+            continue
+            #X[prefix], y[prefix] = load_tcp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
         elif prefix == "icmp":
             X[prefix], y[prefix] = load_icmp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
 
