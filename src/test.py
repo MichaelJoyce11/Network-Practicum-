@@ -18,14 +18,16 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         reader = csv.reader(file)
         next(reader)
         for row in reader:
+            # Preform encoding and float change on packet data
             src_ip = encoder.fit_transform(np.array([row[0]]).reshape(-1, 1))
             dst_ip = encoder.fit_transform(np.array([row[1]]).reshape(-1, 1))
             protocol = encoder.fit_transform(np.array([row[2]]).reshape(-1, 1))
             packet_size = float(row[3])
             timestamp = encoder.fit_transform(np.array([row[4]]).reshape(-1, 1))
             icmp_type = float(row[5])
-            
-            features = list()
+
+            # Combine the encoded and float changed values into a list
+            features = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
             X.append(features)
             y.append(0)
 
@@ -34,22 +36,18 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            src_ips.append(row[0])
-            dst_ips.append(row[1])
-            protocol_types.append(row[2])
-            
-            features = list(map(float, row[3:-1]))
-            X.append(features)
-            y.append(1)
-    
-    encoder = OneHotEncoder(sparse=False)
-    src_ip_encoded = encoder.fit_transform(np.array(src_ips).reshape(-1, 1))
-    dst_ip_encoded = encoder.fit_transform(np.array(dst_ips).reshape(-1, 1))
-    protocol_type_encoded = encoder.fit_transform(np.array(protocol_types).reshape(-1, 1))
+            # Preform encoding and float change on packet data
+            src_ip = encoder.fit_transform(np.array([row[0]]).reshape(-1, 1))
+            dst_ip = encoder.fit_transform(np.array([row[1]]).reshape(-1, 1))
+            protocol = encoder.fit_transform(np.array([row[2]]).reshape(-1, 1))
+            packet_size = float(row[3])
+            timestamp = encoder.fit_transform(np.array([row[4]]).reshape(-1, 1))
+            icmp_type = float(row[5])
 
-    for i in range(len(X)):
-        combined_features = src_ip_encoded[i].tolist() + dst_ip_encoded[i].tolist() + protocol_type_encoded.tolist() + X[i]
-        X[i] = combined_features
+            # Combine the encoded and float changed values into a list
+            features = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+            X.append(features)
+            y.append(0)
     
     return np.array(X), np.array(y)
 
