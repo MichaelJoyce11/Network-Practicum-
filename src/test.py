@@ -18,11 +18,14 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            src_ip = row[0]
-            dst_ip = row[1]
-            protocol = row[2]
+            src_ip = encoder.fit_transform(np.array([row[0]]).reshape(-1, 1))
+            dst_ip = encoder.fit_transform(np.array([row[1]]).reshape(-1, 1))
+            protocol = encoder.fit_transform(np.array([row[2]]).reshape(-1, 1))
+            packet_size = float(row[3])
+            timestamp = encoder.fit_transform(np.array([row[4]]).reshape(-1, 1))
+            icmp_type = float(row[5])
             
-            features = list(map(float, row[3:-1]))
+            features = list()
             X.append(features)
             y.append(0)
 
