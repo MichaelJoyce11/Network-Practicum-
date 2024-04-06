@@ -49,7 +49,7 @@ def load_tcp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7:-1]]
+            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7:]]
             X.append(features)
             y.append(0)
 
@@ -59,7 +59,7 @@ def load_tcp_data(csv_normal_file, csv_ddos_file):
         next(reader)
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7:-1]]
+            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7:]]
             X.append(features)
             y.append(1)
 
