@@ -36,51 +36,51 @@ csv_normal_file = input("Enter the file name of the normal traffic file excludin
 csv_ddos_file = input("Enter the file name of the ddos traffic file excluding the prefix (ex. ddos_traffic.csv): ")
 pkl_filename = input("Enter the file name of the training model (ex. svm_model.pkl): ")
 
-prefixes = ['udp_', 'tcp_', 'icmp_']
+prefixes = ['udp', 'tcp', 'icmp']
+normal_traffic_files = {}
+ddos_traffic_files = {}
 
-normal_traffic_files = {
-    'udp': prefixes[0] + csv_normal_file,
-    'tcp': prefixes[1] + csv_normal_file,
-    'icmp': prefixes[2] + csv_normal_file
-}
+for prefix in prefixes:
+    normal_traffic_files[prefix] = prefix + "_" + csv_normal_file
+    ddox_traffic_files[prefix] = prefix + "_" + csv_ddos_file
 
-ddos_traffic_files = {
-    'udp': prefixes[0] + csv_ddos_file,
-    'tcp': prefixes[1] + csv_ddos_file,
-    'icmp': prefixes[2] + csv_ddos_file
-}
-
+X = {}
+y = {}
 X_train = {}
 X_test = {}
 y_train = {}
 y_test = {}
 clf = {}
 
-# Create a dataset for each protocol
-for protocol in normal_traffic_files:
+for prefix in prefixes:
     try:
-        X, y = load_data(normal_traffic_files[protocol], ddos_traffic_files[protocol])
+        if prefix == "udp":
+            X[prefix], y[prefix] = load_udp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
+        elif prefix == "tcp")
+            X[prefix], y[prefix] = load_tcp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix]))
+        elif prefix == "icmp":
+            X[prefix], y[prefix] = load_icmp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
 
         # Split data into training and testing sets
-        X_train[protocol], X_test[protocol], y_train[protocol], y_test[protocol] = train_test_split(X, y, test_size = 0.2, random_state = 42)
+        X_train[prefix], X_test[prefix], y_train[prefix], y_test[prefix] = train_test_split(X[prefix], y[prefix], test_size = 0.2, random_state = 42)
 
         # Train SVM model
-        clf[protocol] = svm.SVC(kernel = 'linear')
-        clf[protocol].fit(X_train[protocol], y_train[protocol])
+        clf[prefix] = svm.SVC(kernel = 'linear')
+        clf[prefix].fit(X_train[prefix], y_train[prefix])
 
         # Save trained model to file
-        model_file = f'{protocol}_svm_model.pkl'
-        dump(clf[protocol], model_file)
+        model_file = f'{prefix}_svm_model.pkl'
+        dump(clf[prefix], model_file)
 
         # Predictions
-        y_pred_train = clf[protocol].predict(X_train[protocol])
-        y_pred_test = clf[protocol].predict(X_test[protocol])
+        y_pred_train = clf[prefix].predict(X_train[prefix])
+        y_pred_test = clf[prefix].predict(X_test[prefix])
 
         # Evaluate model
-        train_accuracy = accuracy_score(y_train[protocol], y_pred_train)
-        test_accuracy = accuracy_score(y_test[protocol], y_pred_test)
+        train_accuracy = accuracy_score(y_train[prefix], y_pred_train)
+        test_accuracy = accuracy_score(y_test[prefix], y_pred_test)
 
-        print(f"Protocol: {protocol.upper()} - Training Accuracy: {train_accuracy}, Testing Accuracy: {test_accuracy}")
+        print(f"Protocol: {prefix.upper()} - Training Accuracy: {train_accuracy}, Testing Accuracy: {test_accuracy}")
 
     except FileNotFoundError:
-        print(f'File not found for protocol {protocol.upper()}, Skipping...')
+        print(f'File not found for protocol {prefix.upper()}, Skipping...')
