@@ -3,84 +3,113 @@ import numpy as np
 from sklearn import svm
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import OneHotEncoder
 from joblib import dump
+import warnings
 
-# Load data from CSV file
-def load_data(csv_normal_file, csv_ddos_file):
+# Ignore warning saying that for OneHotEncoder sparse_output will be changed in the future
+warnings.filterwarnings("ignore", category=FutureWarning, message="`sparse` was renamed to `sparse_output`.*")
+
+# Load data from ICMP CSV file
+def load_icmp_data(csv_normal_file, csv_ddos_file):
     X = []
     y = []
 
-    # Load data for normal traffic
+    encoder = OneHotEncoder(sparse_output=False)
+    
+    # Load data for icmp normal traffic
     with open(csv_normal_file, 'r') as file:
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            features = list(map(float, row[:-1]))
-            X.append(features)
-            y.append(0) # 0 means normal traffic
+            # Preform encoding and float change on packet data
+            src_ip = encoder.fit_transform(np.array([row[0]]).reshape(-1, 1))
+            dst_ip = encoder.fit_transform(np.array([row[1]]).reshape(-1, 1))
+            protocol = encoder.fit_transform(np.array([row[2]]).reshape(-1, 1))
+            packet_size = float(row[3])
+            timestamp = encoder.fit_transform(np.array([row[4]]).reshape(-1, 1))
+            icmp_type = float(row[5])
 
-    # Load data for ddos traffic
+            # Combine the encoded and float changed values into a list
+            features = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+            X.append(features)
+            y.append(0)
+
+    # Load data for icmp ddos traffic
     with open(csv_ddos_file, 'r') as file:
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            features = list(map(float, row[:-1]))
-            X.append(features)
-            y.append(1)
+            # Preform encoding and float change on packet data
+            src_ip = encoder.fit_transform(np.array([row[0]]).reshape(-1, 1))
+            dst_ip = encoder.fit_transform(np.array([row[1]]).reshape(-1, 1))
+            protocol = encoder.fit_transform(np.array([row[2]]).reshape(-1, 1))
+            packet_size = float(row[3])
+            timestamp = encoder.fit_transform(np.array([row[4]]).reshape(-1, 1))
+            icmp_type = float(row[5])
 
+            # Combine the encoded and float changed values into a list
+            features = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+            X.append(features)
+            y.append(0)
+    
     return np.array(X), np.array(y)
 
 
-# Get the file names of
+# Get the file names of the CSV files excluding the prefix
 csv_normal_file = input("Enter the file name of the normal traffic file excluding the prefix (ex. normal_traffic.csv): ")
 csv_ddos_file = input("Enter the file name of the ddos traffic file excluding the prefix (ex. ddos_traffic.csv): ")
 pkl_filename = input("Enter the file name of the training model (ex. svm_model.pkl): ")
 
-prefixes = ['udp_', 'tcp_', 'icmp_']
+prefixes = ['udp', 'tcp', 'icmp']
+normal_traffic_files = {}
+ddos_traffic_files = {}
 
-normal_traffic_files = {
-    'udp': prefixes[0] + csv_normal_file,
-    'tcp': prefixes[1] + csv_normal_file,
-    'icmp': prefixes[2] + csv_normal_file
-}
+# Create dictionary for file names for easy access
+for prefix in prefixes:
+    normal_traffic_files[prefix] = prefix + "_" + csv_normal_file
+    ddos_traffic_files[prefix] = prefix + "_" + csv_ddos_file
 
-ddos_traffic_files = {
-    'udp': prefixes[0] + csv_ddos_file,
-    'tcp': prefixes[1] + csv_ddos_file,
-    'icmp': prefixes[2] + csv_ddos_file
-}
-
+X = {}
+y = {}
 X_train = {}
 X_test = {}
 y_train = {}
 y_test = {}
 clf = {}
 
-# Create a dataset for each protocol
-for protocol in normal_traffic_files:
+# Train AI on the 3 datasets
+for prefix in prefixes:
     try:
-        X, y = load_data(normal_traffic_files[protocol], ddos_traffic_files[protocol])
+        if prefix == "udp":
+            continue
+            #X[prefix], y[prefix] = load_udp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
+        elif prefix == "tcp":
+            continue
+            #X[prefix], y[prefix] = load_tcp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
+        elif prefix == "icmp":
+            X[prefix], y[prefix] = load_icmp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
 
         # Split data into training and testing sets
-        X_train[protocol], X_test[protocol], y_train[protocol], y_test[protocol] = train_test_split(X, y, test_size = 0.2, random_state = 42)
+        X_train[prefix], X_test[prefix], y_train[prefix], y_test[prefix] = train_test_split(X[prefix], y[prefix], test_size = 0.2, random_state = 42)
 
         # Train SVM model
-        clf[protocol] = svm.SVC(kernel = 'linear')
-        clf[protocol].fit(X_train[protocol], y_train[protocol])
+        clf[prefix] = svm.SVC(kernel = 'linear')
+        clf[prefix].fit(X_train[prefix], y_train[prefix])
 
         # Save trained model to file
-        model_file = f'{protocol}_svm_model.pkl'
-        dump(clf[protocol], model_file)
+        model_file = f'{prefix}_svm_model.pkl'
+        dump(clf[prefix], model_file)
 
         # Predictions
-        y_pred_train = clf[protocol].predict(X_train[protocol])
-        y_pred_test = clf[protocol].predict(X_test[protocol])
+        y_pred_train = clf[prefix].predict(X_train[prefix])
+        y_pred_test = clf[prefix].predict(X_test[prefix])
 
         # Evaluate model
-        train_accuracy = accuracy_score(y_train[protocol], y_pred_train)
-        test_accuracy = accuracy_score(y_test[protocol], y_pred_test)
+        train_accuracy = accuracy_score(y_train[prefix], y_pred_train)
+        test_accuracy = accuracy_score(y_test[prefix], y_pred_test)
 
-        print(f"Protocol: {protocol.upper()} - Training Accuracy: {train_accuracy}, Testing Accuracy: {test_accuracy}")
+        print(f"Protocol: {prefix.upper()} - Training Accuracy: {train_accuracy}, Testing Accuracy: {test_accuracy}")
 
     except FileNotFoundError:
-        print(f'File not found for protocol {protocol.upper()}, Skipping...')
+        print(f'File not found for protocol {prefix.upper()}, Skipping...')
