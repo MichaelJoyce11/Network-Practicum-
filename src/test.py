@@ -35,7 +35,7 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
             # Parse data from CSV file and add to arrays for further processing
             features = list(row[:-1])
             X.append(features)
-            y.append(0)
+            y.append(1)
 
     return np.array(X), np.array(y)
 
