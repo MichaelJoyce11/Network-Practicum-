@@ -11,13 +11,38 @@ import warnings
 # Ignore warning saying that for OneHotEncoder sparse_output will be changed in the future
 warnings.filterwarnings("ignore", category=FutureWarning, message="`sparse` was renamed to `sparse_output`.*")
 
+# Load data from UDP CSV file
+def load_udp_data(csv_normal_file, csv_ddos_file):
+    X = []
+    y = []
+
+    # Load data for udp normal traffic
+    with open(csv_normal_file, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            # Parse data from CSV file and add to arrays for further processing
+            features = [row[0], row[1], row[2], row[3], row[5], row[6]]
+            X.append(features)
+            y.append(0)
+
+    # Load data for udp ddos traffic
+    with open(csv_ddos_file, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            # Parse data from CSV file and add to arrays for further processing
+            features = [row[0], row[1], row[2], row[3], row[5], row[6]]
+            X.append(features)
+            y.append(1)
+
+    return np.array(X), np.array(y)
+
 # Load data from TCP CSV file
 def load_tcp_data(csv_normal_file, csv_ddos_file):
     X = []
     y = []
 
-    encoder = OneHotEncoder(sparse_output=False)
-    
     # Load data for tcp normal traffic
     with open(csv_normal_file, 'r') as file:
         reader = csv.reader(file)
@@ -40,15 +65,11 @@ def load_tcp_data(csv_normal_file, csv_ddos_file):
 
     return np.array(X), np.array(y)
 
-
-
 # Load data from ICMP CSV file
 def load_icmp_data(csv_normal_file, csv_ddos_file):
     X = []
     y = []
 
-    encoder = OneHotEncoder(sparse_output=False)
-    
     # Load data for icmp normal traffic
     with open(csv_normal_file, 'r') as file:
         reader = csv.reader(file)
@@ -99,8 +120,15 @@ clf = {}
 for prefix in prefixes:
     try:
         if prefix == "udp":
-            continue
-            #X[prefix], y[prefix] = load_udp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
+            X[prefix], y[prefix] = load_udp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
+            columns_to_encode = [0, 2, 5]
+            encoder = OneHotEncoder(sparse_output=False)
+
+            ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
+
+            # Apply OneHotEncoding
+            X[prefix] = ct.fit_transform(X[prefix])
+
         elif prefix == "tcp":
             X[prefix], y[prefix] = load_tcp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
             columns_to_encode = [0, 2,5]
