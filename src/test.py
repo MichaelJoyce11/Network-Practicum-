@@ -52,23 +52,28 @@ def load_icmp_data(csv_normal_file, csv_ddos_file):
             icmp_types.append(row[5])
             y.append(1)
 
-    src_ips_encoded = encoder.fit_transform(np.array(src_ips).reshape(-1, 1))
-    dst_ips_encoded = encoder.fit_transform(np.array(dst_ips).reshape(-1, 1))
-    protocols_encoded = encoder.fit_transform(np.array(protocols).reshape(-1, 1))
-    packet_sizes_float = [float(value) for value in packet_sizes]
-    timestamps_encoded = encoder.fit_transform(np.array(timestamps).reshape(-1, 1))
-    icmp_types_encoded = [float(value) for value in icmp_types]
+    # Fit OneHotEncoder on all categorical features
+    X_categorical = np.concatenate([np.array(src_ips).reshape(-1, 1),
+                                    np.array(dst_ips).reshape(-1, 1),
+                                    np.array(protocols).reshape(-1, 1),
+                                    np.array(timestamps).reshape(-1, 1)], axis=1)
+    encoder.fit(X_categorical)
 
+    # Encode categorical features
+    src_ips_encoded = encoder.transform(np.array(src_ips).reshape(-1, 1))
+    dst_ips_encoded = encoder.transform(np.array(dst_ips).reshape(-1, 1))
+    protocols_encoded = encoder.transform(np.array(protocols).reshape(-1, 1))
+    timestamps_encoded = encoder.transform(np.array(timestamps).reshape(-1, 1))
+    
+    # Convert packet sizes and icmp types to float
+    packet_sizes_float = np.array(packet_sizes, dtype=float).reshape(-1, 1)
+    icmp_types_float = np.array(icmp_types, dtype=float).reshape(-1, 1)
+
+    # Combine encoded features with float features
     for i in range(len(y)):
-          src_ip = src_ips_encoded[i].reshape(1, -1)
-          dst_ip = dst_ips_encoded[i].reshape(1, -1)
-          protocol = protocols_encoded[i].reshape(1, -1)
-          packet_size = packet_sizes_encoded[i].reshape(1, -1)
-          timestamp = timestamps_encoded[i].reshape(1, -1)
-          icmp_type = icmp_types_encoded[i].reshape(1, -1)
-
-          features = np.hstack([src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type])
-          X.append(features)
+        features = np.hstack([src_ips_encoded[i], dst_ips_encoded[i], protocols_encoded[i],
+                              packet_sizes_float[i], timestamps_encoded[i], icmp_types_float[i]])
+        X.append(features)
 
     return np.array(X), np.array(y)
 
