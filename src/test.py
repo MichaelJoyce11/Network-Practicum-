@@ -40,6 +40,7 @@ prefixes = ['udp', 'tcp', 'icmp']
 normal_traffic_files = {}
 ddos_traffic_files = {}
 
+
 for prefix in prefixes:
     normal_traffic_files[prefix] = prefix + "_" + csv_normal_file
     ddox_traffic_files[prefix] = prefix + "_" + csv_ddos_file
@@ -52,6 +53,7 @@ y_train = {}
 y_test = {}
 clf = {}
 
+# Train AI on the 3 datasets
 for prefix in prefixes:
     try:
         if prefix == "udp":
