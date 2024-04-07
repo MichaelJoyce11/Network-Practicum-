@@ -8,16 +8,14 @@ import pathlib  # Add this import if it's not already imported
 from struct import unpack
 import numpy as np
 import logging
+import pickle
 from sklearn.ensemble import RandomForestClassifier
 
 
-PATH = f'{str(pathlib.Path(__file__).parent.absolute())}\\'
-os.chdir(PATH)
-
-if not os.path.exists(os.path.join(PATH, 'logs')):
+if not os.path.exists('logs'):
     os.mkdir('logs')
 LOG_TIME = time.asctime().replace(' ', '_').replace(':', '-')
-logging.basicConfig(filename=os.path.join(PATH, 'logs', LOG_TIME + '-dbg.txt'), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename=os.path.join('logs', LOG_TIME + '-dbg.txt'), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.info('Started logging file successfully')
 
 # Get trained model file from user
@@ -131,7 +129,7 @@ def predict_packet(packet_features, protocol):
     # Use the trained model to predict packet type
     prediction = model.predict(packet_features)
     src_ip = packet_features[0]
-    
+
     # Assuming the classes are encoded as 0 for regular ping and 1 for attack
     if prediction == 1 and src_ip != my_ip:
         block_ip(src_ip, protocol)
