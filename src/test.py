@@ -10,6 +10,8 @@ import numpy as np
 import logging
 from joblib import load
 from sklearn.ensemble import RandomForestClassifier
+from struct import unpack
+from socket import inet_ntoa, ntohs
 
 
 if not os.path.exists('logs'):
