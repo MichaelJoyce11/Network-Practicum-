@@ -12,6 +12,13 @@ from joblib import load
 from sklearn.ensemble import RandomForestClassifier
 from struct import unpack
 from socket import inet_ntoa, ntohs
+from sklearn import svm
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
+import warnings
+
+# Ignore warning saying that for OneHotEncoder sparse_output will be changed in the future
+warnings.filterwarnings("ignore", category=FutureWarning, message="`sparse` was renamed to `sparse_output`.*")
 
 # Define protocol mapping
 PROTOCOL_MAP = {
@@ -129,6 +136,25 @@ def extract_features(data):
             icmph = unpack('!BBH', icmp_header)
             icmp_type = icmph[0]
             row_data = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+
+        if protocol == "udp":
+            columns_to_encode = [0, 2, 5]
+            encoder = OneHotEncoder(sparse_output=False)
+            ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
+            # Apply OneHotEncoding
+            row_data = ct.fit_transform(row_data)
+        elif protocol == "tcp":
+            columns_to_encode = [0, 2,5]
+            encoder = OneHotEncoder(sparse_output=False)
+            ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
+            # Apply OneHotEncoding
+            row_data = ct.fit_transform(row_data)
+        elif protocol == "icmp":)
+            columns_to_encode = [0, 1, -2]
+            encoder = OneHotEncoder(sparse_output=False)
+            ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
+            # Apply OneHotEncoding
+            row_data = ct.fit_transform(row_data)
 
         return np.array(row_data), protocol
 
