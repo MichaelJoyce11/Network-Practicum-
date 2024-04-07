@@ -13,6 +13,12 @@ from sklearn.ensemble import RandomForestClassifier
 from struct import unpack
 from socket import inet_ntoa, ntohs
 
+# Define protocol mapping
+PROTOCOL_MAP = {
+        1: "ICMP",
+        6: "TCP",
+        17: "UDP"
+}
 
 if not os.path.exists('logs'):
     os.mkdir('logs')
