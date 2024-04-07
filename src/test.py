@@ -11,7 +11,7 @@ import logging
 from sklearn.ensemble import RandomForestClassifier
 
 
-PATH = f'{str(pathlib.path.Path(__file__).parent.absolute())}\\'
+PATH = f'{str(pathlib.Path(__file__).parent.absolute())}\\'
 os.chdir(PATH)
 
 if not os.path.exists(os.path.join(PATH, 'logs')):
