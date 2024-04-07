@@ -133,7 +133,7 @@ def predict_packet(packet_features, protocol):
     src_ip = packet_features[0]
     
     # Assuming the classes are encoded as 0 for regular ping and 1 for attack
-    if prediction == 1 and src_ip not my_ip:
+    if prediction == 1 and src_ip != my_ip:
         block_ip(src_ip, protocol)
     else:
         forward_ip(src_ip)
