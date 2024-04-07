@@ -48,7 +48,7 @@ def get_ip_address():
 my_ip = get_ip_address()
 
 # Function to extract features from a packet
-def extract_features(packet):
+def extract_features(data):
     eth_length = 14
 
     # Extract ethernet header
