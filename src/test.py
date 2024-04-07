@@ -149,7 +149,7 @@ def extract_features(data):
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
             # Apply OneHotEncoding
             row_data = ct.fit_transform(row_data)
-        elif protocol == "icmp":)
+        elif protocol == "icmp":
             columns_to_encode = [0, 1, -2]
             encoder = OneHotEncoder(sparse_output=False)
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
