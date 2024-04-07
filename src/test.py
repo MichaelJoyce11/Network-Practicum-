@@ -50,7 +50,6 @@ def extract_features(packet):
         else:
             csv_filename_prefix = ""
 
-
         # Parse TCP packets
         if iph [6] == 6:
             tcp_header = data[iph_length+eth_length:iph_length+eth_length+20]
@@ -67,25 +66,19 @@ def extract_features(packet):
             }
             src_port = tcph[0]
             dst_port = tcph[1]
-
             row_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values())
-
         # Parse UDP packets
         elif iph[6] == 17:
             udp_header = data[iph_length+eth_length:iph_length+eth_length+8]
             udph = unpack('!HHHH', udp_header)
             src_port = udph[0]
             dst_port = udph[1]
-
             row_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp]
-
         # Parse ICMP packets
         elif iph[6] == 1:
             icmp_header = data[iph_length+eth_length:iph_length+eth_length+4]
             icmph = unpack('!BBH', icmp_header)
             icmp_type = icmph[0]
-
-
             row_data = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
 
         return np.array(row_data)
@@ -105,8 +98,8 @@ def predict_packet(packet_features):
     return model.predict(packet_features)
 
 # Function to handle incoming packets
-def handle_packet(packet):
-    features = extract_features(packet)
+def handle_packet(header, data):
+    features = extract_features(data)
     prediction = predict_packet([features])
     if prediction == 1:
         # Block or restrict traffic from the IP address if it's identified as an attacker
@@ -124,6 +117,25 @@ def block_ip(ip_address):
 def forward_packet(packet):
     # Implement logic to forward the packet to its destination
     pass
+
+
+
+
+# Set the network interface to capture packets
+interface = "eth0"
+
+ # Open the network interface in promiscuous mode
+pcap = pcapy.open_live(interface, 65536, True, 100)
+
+# Start capturing packets
+pcap.loop(0, lambda header, data: handle_packet(header, data))
+
+
+
+
+
+
+
 
 # Main loop for monitoring incoming packets
 while True:
