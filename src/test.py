@@ -1,10 +1,44 @@
 import pickle
+import socket
 import numpy as np
+import subprocess
+import logging
 from sklearn.ensemble import RandomForestClassifier
+
+PATH = f'{str(pathlib.path.Path(__file__).parent.absolute())}\\'
+os.chdir(PATH)
+
+if not os.path.exists(os.path.join(PATH, 'logs')):
+    os.mkdir('logs')
+LOG_TIME = time.asctime().replace(' ', '_').replace(':', '-')
+logging.basicConfig(filename=os.path.join(PATH, 'logs', LOG_TIME + '-dbg.txt'), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.info('Started logging file successfully')
 
 # Load trained model from .pkl file
 with open('trained_model.pkl', 'rb') as f:
     model = pickle.load(f)
+
+# Get the IP of the victim computer
+def get_ip_address():
+    # Create a socket object
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    try:
+        # Connect to a remote server (doesn't send any data)
+        sock.connect(("8.8.8.8", 80))
+
+        # Get the local IP address connected to the socket
+        ip_address = sock.getsockname()[0]
+    except Exception as e:
+        print("Error:", e)
+        ip_address = None
+    finally:
+        # Close the socket
+        sock.close()
+
+    return ip_address
+
+my_ip = get_ip_address()
 
 # Function to extract features from a packet
 def extract_features(packet):
@@ -81,63 +115,54 @@ def extract_features(packet):
             icmp_type = icmph[0]
             row_data = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
 
-        return np.array(row_data)
-
-
-
-
-
-
-
-
+        return np.array(row_data), protocol
 
 # Function to predict packet type (attack or regular)
-def predict_packet(packet_features):
+def predict_packet(packet_features, protocol):
     # Use the trained model to predict packet type
-    # Return the prediction (0 for regular ping, 1 for attack)
-    return model.predict(packet_features)
+    prediction = model.predict(packet_features)
+    src_ip = packet_features[0]
+    
+    # Assuming the classes are encoded as 0 for regular ping and 1 for attack
+    if prediction == 1 and src_ip not my_ip:
+        block_ip(src_ip, protocol)
+    else:
+        forward_ip(src_ip)
+
+
 
 # Function to handle incoming packets
 def handle_packet(header, data):
-    features = extract_features(data)
-    prediction = predict_packet([features])
-    if prediction == 1:
-        # Block or restrict traffic from the IP address if it's identified as an attacker
-        block_ip(packet.source_ip)
-    else:
-        # Allow regular ping packets to pass through
-        forward_packet(packet)
+    features, protocol = extract_features(data)
+    prediction = predict_packet([features], protocol)
 
 # Function to block traffic from an IP address
-def block_ip(ip_address):
-    # Implement IP blocking mechanism
-    pass
+def block_ip(ip_address, packet_type):
+    command = ["sudo", "iptables", "-A", "INPUT", "-s", ip_address, "-j", "DROP"]
+    subprocess.run(command)
+    logging.warning('Blocked {packet_type} packet from {ip_address}: suspected DDOS traffic')
 
 # Function to forward regular ping packets
 def forward_packet(packet):
-    # Implement logic to forward the packet to its destination
-    pass
+    sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
 
+    try:
+        # Send the packet to the destination address
+        sock.sendto(packet, (destination_address, 0))
+        print("Packet forwarded successfully.")
+    except Exception as e:
+        print("Error forwarding packet:", e)
+    finally:
+        # Close the socket
+        sock.close()
 
 
 
 # Set the network interface to capture packets
 interface = "eth0"
 
- # Open the network interface in promiscuous mode
+# Open the network interface in promiscuous mode
 pcap = pcapy.open_live(interface, 65536, True, 100)
 
 # Start capturing packets
 pcap.loop(0, lambda header, data: handle_packet(header, data))
-
-
-
-
-
-
-
-
-# Main loop for monitoring incoming packets
-while True:
-    packet = receive_packet()  # Function to receive an incoming packet
-    handle_packet(packet)
