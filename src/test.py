@@ -8,7 +8,7 @@ import pathlib  # Add this import if it's not already imported
 from struct import unpack
 import numpy as np
 import logging
-import pickle
+from joblib import load
 from sklearn.ensemble import RandomForestClassifier
 
 
@@ -23,7 +23,7 @@ modelName = input('Enter the name of the AI model file excluding the prefix (ex.
 
 # Load trained model from .pkl file
 with open(modelName, 'rb') as f:
-    model = pickle.load(f)
+    model = load(f)
 
 # Get the IP of the victim computer
 def get_ip_address():
