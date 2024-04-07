@@ -14,8 +14,11 @@ LOG_TIME = time.asctime().replace(' ', '_').replace(':', '-')
 logging.basicConfig(filename=os.path.join(PATH, 'logs', LOG_TIME + '-dbg.txt'), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.info('Started logging file successfully')
 
+# Get trained model file from user
+modelName = input('Enter the name of the AI model file excluding the prefix (ex. svm_model.pkl)')
+
 # Load trained model from .pkl file
-with open('trained_model.pkl', 'rb') as f:
+with open(modelName, 'rb') as f:
     model = pickle.load(f)
 
 # Get the IP of the victim computer
