@@ -122,63 +122,22 @@ def extract_features(data):
             }
             src_port = tcph[0]
             dst_port = tcph[1]
-            row = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values())
-            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7:]]
+            packet_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values())
         # Parse UDP packets
         elif iph[6] == 17:
             udp_header = data[iph_length+eth_length:iph_length+eth_length+8]
             udph = unpack('!HHHH', udp_header)
             src_port = udph[0]
             dst_port = udph[1]
-            row = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp]
-            features = [row[0], row[1], row[2], row[3], row[5], row[6]]
+            packet_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp]
         # Parse ICMP packets
         elif iph[6] == 1:
             icmp_header = data[iph_length+eth_length:iph_length+eth_length+4]
             icmph = unpack('!BBH', icmp_header)
             icmp_type = icmph[0]
-            row = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
-            features = [row[0], row[1], row[3], row[4], row[5]]
+            packet_data = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
 
-        if protocol == "UDP":
-            columns_to_encode = [0, 2, 5]
-            encoder = OneHotEncoder(sparse_output=False)
-            ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
-            # Apply OneHotEncoding
-            row_data = ct.fit_transform([features])  # Wrap row_data in a list
-        elif protocol == "TCP":
-            columns_to_encode = [0, 2,5]
-            encoder = OneHotEncoder(sparse_output=False)
-            ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
-            # Apply OneHotEncoding
-            row_data = ct.fit_transform([features])  # Wrap row_data in a list
-        elif protocol == "ICMP":
-            columns_to_encode = [0, 1, -2]
-            encoder = OneHotEncoder(sparse_output=False)
-            ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
-            # Apply OneHotEncoding
-            row_data = ct.fit_transform([features])  # Wrap row_data in a list
-
-        return np.array(row_data), protocol
-
-# Function to predict packet type (attack or regular)
-def predict_packet(packet_features, protocol):
-    # Use the trained model to predict packet type
-    prediction = model.predict(packet_features)
-    src_ip = packet_features[0]
-
-    # Assuming the classes are encoded as 0 for regular ping and 1 for attack
-    if prediction == 1 and src_ip != my_ip:
-        block_ip(src_ip, protocol)
-    else:
-        forward_ip(src_ip)
-
-
-
-# Function to handle incoming packets
-def handle_packet(header, data):
-    features, protocol = extract_features(data)
-    prediction = predict_packet([features], protocol)
+        return np.array(packet_data)
 
 # Function to block traffic from an IP address
 def block_ip(ip_address, packet_type):
@@ -200,13 +159,43 @@ def forward_packet(packet):
         # Close the socket
         sock.close()
 
+# Get a single received packet
+def receive_packet():
+    # Create a raw socket to receive packets
+    sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(0x0003))
 
+    try:
+        # Receive a packet
+        packet, _ = sock.recvfrom(65535)
+        return packet
+    except socket.error as e:
+        print("Error receiving packet:", e)
+    finally:
+        # Close the socket
+        sock.close()
 
-# Set the network interface to capture packets
-interface = "eth0"
+encoder = OneHotEncoder()
+columns_to_encode = [0, 1, 3]
 
-# Open the network interface in promiscuous mode
-pcap = pcapy.open_live(interface, 65536, True, 100)
+while True:
+        packet = receive_packet()
+        features = extract_features(packet)
 
-# Start capturing packets
-pcap.loop(0, lambda header, data: handle_packet(header, data))
+        data = [features[0], features[1], float(features[3]), features[4], float(features[5])]
+        data_to_encode = data[:, columns_to_encode]
+
+        data_to_encode = data_to_encode.reshape(-1, 1)
+        
+        encoded_data = encoder.fit_transform(data_to_encode)
+        
+        # Use the trained model to predict packet type
+        prediction = model.predict(encoded_data)
+        src_ip = features[0]
+
+        # Assuming the classes are encoded as 0 for regular ping and 1 for attack
+        if prediction == 1 and src_ip != my_ip:
+                block_ip(src_ip, protocol)
+        else:
+                forward_ip(src_ip)
+
+        
