@@ -149,8 +149,8 @@ def extract_features(data):
         
                 return np.array(packet_data), protocol
     except:
-        logging.error("Error extracting features:", e)
-        # If an exception occurs, return default values
+        logging.warning(f'Error processing {protocol} packet: {e}')
+        logging.warning(f'Packet details: {packet}')
         return np.array([]), "Unknown"
 
 # Function to block traffic from an IP address
