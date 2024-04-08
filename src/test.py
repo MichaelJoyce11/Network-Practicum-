@@ -174,28 +174,36 @@ def receive_packet():
         # Close the socket
         sock.close()
 
-encoder = OneHotEncoder()
+encoder = OneHotEncoder(sparse_output=False)
 columns_to_encode = [0, 1, 3]
 
 while True:
         packet = receive_packet()
         features = extract_features(packet)
 
-        data = np.array([features[0], features[1], float(features[3]), features[4], float(features[5])])
-        data_to_encode = data[:, columns_to_encode]
+        try:
+            # Extract specific features and convert to appropriate types
+            data = np.array([features[0], features[1], float(features[3]), features[4], float(features[5])])
+            print(f'\nData: {data}\n')
+            data_to_encode = data[:, columns_to_encode]
 
-        data_to_encode = data_to_encode.reshape(-1, 1)
-        
-        encoded_data = encoder.fit_transform(data_to_encode)
-        
-        # Use the trained model to predict packet type
-        prediction = model.predict(encoded_data)
-        src_ip = features[0]
+            data_to_encode = data_to_encode.reshape(-1, 1)
 
-        # Assuming the classes are encoded as 0 for regular ping and 1 for attack
-        if prediction == 1 and src_ip != my_ip:
-                block_ip(src_ip, protocol)
-        else:
-                forward_ip(src_ip)
+            encoded_data = encoder.fit_transform(data_to_encode)
+            print(f'\nEncoded: {encoded_data}\n')
+            # Use the trained model to predict packet type
+            prediction = model.predict(encoded_data)
+            src_ip = features[0]
 
-        
+            print(f'\nPrediction is: {prediction}\n')
+            # Assuming the classes are encoded as 0 for regular ping and 1 for attack
+            if prediction == 1 and src_ip != my_ip:
+                    block_ip(src_ip, protocol)
+                    print("Here")
+            else:
+                    forward_ip(src_ip)
+                    print("Here2")
+
+            # Continue with your processing using 'data'
+        except (IndexError, TypeError):
+            print(" ")
