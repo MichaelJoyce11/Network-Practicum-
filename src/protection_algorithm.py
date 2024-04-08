@@ -34,11 +34,17 @@ logging.basicConfig(filename=os.path.join('logs', LOG_TIME + '-dbg.txt'), level=
 logging.info('Started logging file successfully')
 
 # Get trained model file from user
-modelName = input('Enter the name of the AI model file excluding the prefix (ex. svm_model.pkl)')
+modelName = input('Enter the name of the AI model file excluding the prefix (ex. svm_model.pkl): ')
 
-# Load trained model from .pkl file
-with open(modelName, 'rb') as f:
-    model = load(f)
+# Load trained models from .pkl file
+#with open('udp_' + modelName, 'rb') as file:
+#    udp_model = load(file)
+
+#with open('tcp_' + modelName, 'rb') as file:
+#    tcp_model = load(file)
+
+with open('icmp_' + modelName, 'rb') as file:
+    icmp_model = load(file)
 
 # Get the IP of the victim computer
 def get_ip_address():
@@ -140,6 +146,7 @@ def extract_features(data):
             icmp_type = icmph[0]
             packet_data = [src_ip, dst_ip, protocol, packet_size, seconds, microseconds, icmp_type]
 
+        print(protocol)
         return np.array(packet_data), protocol
 
 # Function to block traffic from an IP address
@@ -214,28 +221,54 @@ while True:
         packet = receive_packet()
         features, protocol = extract_features(packet)
 
-        if protocol == 'UDP':
-            print('in udp')
+        try:
+            if protocol == 'UDP':
+                continue
+                # Extract specific features and convert to appropriate type
+                data = np.array([[features[0], features[1], features[2], features[3], features[5], features[6], features[7]]])
+
+                # Create column transformer for encoding
+                ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, udp_columns_to_encode)], remainder='passthrough')
+
+                # Apply OneHotEncoding
+                data = ct.fit_transform(data)
+
+                # Use trained model to predict packet type
+                prediction = udp_model.predict(data)
+
+            elif protocol == 'TCP':
+                continue
+                # Extract specific features and convert to appropriate type
+                data = np.array([[features[0], features[1], features[2], features[3], features[5], features[6], features[7], features[8], features[9], features[10], features[11], features[12], features[13], features[14], features[15]]])
+
+                # Create column transformer for encoding
+                ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, tcp_columns_to_encode)], remainder='passthrough')
+
+                # Apply OneHotEncoding
+                data = ct.fit_transform(data)
+
+                # Use trained model to predict packet type
+                prediction = tcp_model.predict(data)
+
+            elif protocol == 'ICMP':
+                # Extract specific features and convert to appropriate types
+                data = np.array([[features[0], features[1], features[3], features[4], features[5], features[6]]])
+
+                # Create column transformer for encoding
+                ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, icmp_columns_to_encode)], remainder='passthrough')
+
+                # Apply OneHotEncoding
+                data = ct.fit_transform(data)
+
+                # Use the trained model to predict packet type
+                prediction = icmp_model.predict(data)
+        except Exception as e:
+            logging.warning(f'Error processing {protocol} packet: {e}')
+            logging.warning(f'Packet details: {packet}')
             continue
-        elif protocol == 'TCP':
-            print('in tcp')
-            continue
-        elif protocol == 'ICMP':
-            # Extract specific features and convert to appropriate types
-            data = np.array([[features[0], features[1], features[3], features[4], features[5], features[6]]])
 
-            # Create column transformer for encoding
-            ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, icmp_columns_to_encode)], remainder='passthrough')
-
-            # Apply OneHotEncoding
-            data = ct.fit_transform(data)
-
-            # Use the trained model to predict packet type
-            prediction = model.predict(data)
-            src_ip = features[0]
-
-
-        print(f'\nPrediction is: {prediction}\n')
+        src_ip = features[0]
+        print(f'Prediction for protocol {protocol} is: {prediction}')
         # Assuming the classes are encoded as 0 for regular ping and 1 for attack
         if prediction == 1 and src_ip != my_ip:
                 block_ip(src_ip, protocol)
