@@ -184,14 +184,6 @@ while True:
         packet = receive_packet()
         features = extract_features(packet)
 
-        #192.168.8.216,
-        #192.168.8.214,
-        #ICMP,
-        #98,
-        #52,
-        #296880,
-        #0
-
         # Extract specific features and convert to appropriate types
         data = np.array([[features[0], features[1], features[3], features[4], features[5], features[6]]])
         print(f'\nData: {data}\n')
