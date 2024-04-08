@@ -195,14 +195,13 @@ while True:
         # Extract specific features and convert to appropriate types
         data = np.array([[features[0], features[1], features[3], features[4], features[5], features[6]]])
         print(f'\nData: {data}\n')
-        data_to_encode = data[:, columns_to_encode]
-        
-        data_to_encode = data_to_encode.reshape(-1, 1)
-        
-        encoded_data = encoder.fit_transform(data_to_encode)
-        print(f'\nEncoded: {encoded_data}\n')
+        ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
+        # Apply OneHotEncoding
+        data = ct.fit_transform(data)
+
+        print(f'\nEncoded: {data}\n')
         # Use the trained model to predict packet type
-        prediction = model.predict(encoded_data)
+        prediction = model.predict(data)
         src_ip = features[0]
         
         print(f'\nPrediction is: {prediction}\n')
