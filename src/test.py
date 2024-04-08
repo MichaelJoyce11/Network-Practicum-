@@ -142,19 +142,19 @@ def extract_features(data):
             encoder = OneHotEncoder(sparse_output=False)
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
             # Apply OneHotEncoding
-            row_data = ct.fit_transform(row_data)
+            row_data = ct.fit_transform([row_data])  # Wrap row_data in a list
         elif protocol == "TCP":
             columns_to_encode = [0, 2,5]
             encoder = OneHotEncoder(sparse_output=False)
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
             # Apply OneHotEncoding
-            row_data = ct.fit_transform(row_data)
+            row_data = ct.fit_transform([row_data])  # Wrap row_data in a list
         elif protocol == "ICMP":
             columns_to_encode = [0, 1, -2]
             encoder = OneHotEncoder(sparse_output=False)
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
             # Apply OneHotEncoding
-            row_data = ct.fit_transform(row_data)
+            row_data = ct.fit_transform([row_data])  # Wrap row_data in a list
 
         return np.array(row_data), protocol
 
