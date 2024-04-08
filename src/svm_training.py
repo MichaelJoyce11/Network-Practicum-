@@ -23,7 +23,7 @@ def load_udp_data(csv_normal_file, csv_ddos_file):
         i = 0
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[2], row[3] + row[5], row[6], row[7]]
+            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7]]
             X.append(features)
             y.append(0)
             if i == 2000:
@@ -37,7 +37,7 @@ def load_udp_data(csv_normal_file, csv_ddos_file):
         i = 0
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[2], row[3] + row[5], row[6], row[7]]
+            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7]]
             X.append(features)
             y.append(1)
             if i == 2000:
@@ -58,7 +58,7 @@ def load_tcp_data(csv_normal_file, csv_ddos_file):
         i = 0
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[2], row[3] + row[5:]]
+            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15]]
             X.append(features)
             y.append(0)
             if i == 2000:
@@ -72,7 +72,7 @@ def load_tcp_data(csv_normal_file, csv_ddos_file):
         i = 0
         for row in reader:
             # Parse data from CSV file and add to arrays for further processing
-            features = [row[0], row[1], row[2], row[3] + row[5:]]
+            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15]]
             X.append(features)
             y.append(1)
             if i == 2000:
