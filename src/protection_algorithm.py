@@ -60,6 +60,7 @@ def get_ip_address():
 
     return ip_address
 
+# Get the IP of the local computer
 my_ip = get_ip_address()
 
 # Function to extract features from a packet
@@ -92,6 +93,8 @@ def extract_features(data):
 
         # Get current timestamp
         timestamp = datetime.datetime.now()
+        seconds = timestamp.second
+        microseconds = timestamp.microsecond
 
         # Set Row Data
         row_data = None
@@ -122,20 +125,20 @@ def extract_features(data):
             }
             src_port = tcph[0]
             dst_port = tcph[1]
-            packet_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values())
+            packet_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, seconds, microseconds] + list(flags.values())
         # Parse UDP packets
         elif iph[6] == 17:
             udp_header = data[iph_length+eth_length:iph_length+eth_length+8]
             udph = unpack('!HHHH', udp_header)
             src_port = udph[0]
             dst_port = udph[1]
-            packet_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp]
+            packet_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, seconds, microseconds]
         # Parse ICMP packets
         elif iph[6] == 1:
             icmp_header = data[iph_length+eth_length:iph_length+eth_length+4]
             icmph = unpack('!BBH', icmp_header)
             icmp_type = icmph[0]
-            packet_data = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+            packet_data = [src_ip, dst_ip, protocol, packet_size, seconds, microseconds, icmp_type]
 
         return np.array(packet_data)
 
@@ -174,28 +177,39 @@ def receive_packet():
         # Close the socket
         sock.close()
 
-encoder = OneHotEncoder()
-columns_to_encode = [0, 1, 3]
+encoder = OneHotEncoder(sparse_output=False)
+columns_to_encode = [0, 1]
 
 while True:
         packet = receive_packet()
         features = extract_features(packet)
 
-        data = np.array([features[0], features[1], float(features[3]), features[4], float(features[5])])
-        data_to_encode = data[:, columns_to_encode]
+        #192.168.8.216,
+        #192.168.8.214,
+        #ICMP,
+        #98,
+        #52,
+        #296880,
+        #0
 
-        data_to_encode = data_to_encode.reshape(-1, 1)
-        
-        encoded_data = encoder.fit_transform(data_to_encode)
-        
+        # Extract specific features and convert to appropriate types
+        data = np.array([[features[0], features[1], features[3], features[4], features[5], features[6]]])
+        print(f'\nData: {data}\n')
+        ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
+        # Apply OneHotEncoding
+        data = ct.fit_transform(data)
+
+        print(f'\nEncoded: {data}\n')
         # Use the trained model to predict packet type
-        prediction = model.predict(encoded_data)
+        prediction = model.predict(data)
         src_ip = features[0]
 
+        print(f'\nPrediction is: {prediction}\n')
         # Assuming the classes are encoded as 0 for regular ping and 1 for attack
         if prediction == 1 and src_ip != my_ip:
                 block_ip(src_ip, protocol)
+                print("Here")
         else:
-                forward_ip(src_ip)
+                forward_packet(src_ip)
+                print("Here2")
 
-        
