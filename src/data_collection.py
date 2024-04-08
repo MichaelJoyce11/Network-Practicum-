@@ -45,6 +45,8 @@ def process_packet(header, data, csv_filename):
 
         # Get current timestamp
         timestamp = datetime.datetime.now()
+        seconds = timestamp.second
+        microsecond = timestamp.microsecond
 
         # Set Row Data
         row_data = None
@@ -77,7 +79,7 @@ def process_packet(header, data, csv_filename):
             src_port = tcph[0]
             dst_port = tcph[1]
 
-            row_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values())
+            row_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, seconds, microseconds] + list(flags.values())
 
         # Parse UDP packets
         elif iph[6] == 17:
@@ -86,7 +88,7 @@ def process_packet(header, data, csv_filename):
             src_port = udph[0]
             dst_port = udph[1]
 
-            row_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp]
+            row_data = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, seconds, microseconds]
 
         # Parse ICMP packets
         elif iph[6] == 1:
@@ -95,7 +97,7 @@ def process_packet(header, data, csv_filename):
             icmp_type = icmph[0]
 
 
-            row_data = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+            row_data = [src_ip, dst_ip, protocol, packet_size, seconds, microseconds, icmp_type]
         try:
             with open(csv_filename_prefix + csv_filename, mode = 'a', newline = '') as file:
                 writer = csv.writer(file)
@@ -115,4 +117,3 @@ pcap = pcapy.open_live(interface, 65536, True, 100)
 
 # Start capturing packets
 pcap.loop(0, lambda header, data: process_packet(header, data, csv_filename))
-
