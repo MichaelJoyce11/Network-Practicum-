@@ -46,7 +46,7 @@ def process_packet(header, data, csv_filename):
         # Get current timestamp
         timestamp = datetime.datetime.now()
         seconds = timestamp.second
-        microsecond = timestamp.microsecond
+        microseconds = timestamp.microsecond
 
         # Set Row Data
         row_data = None
