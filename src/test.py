@@ -137,19 +137,19 @@ def extract_features(data):
             icmp_type = icmph[0]
             row_data = [src_ip, dst_ip, packet_size, timestamp, icmp_type]
 
-        if protocol == "udp":
+        if protocol == "UDP":
             columns_to_encode = [0, 2, 5]
             encoder = OneHotEncoder(sparse_output=False)
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
             # Apply OneHotEncoding
             row_data = ct.fit_transform(row_data)
-        elif protocol == "tcp":
+        elif protocol == "TCP":
             columns_to_encode = [0, 2,5]
             encoder = OneHotEncoder(sparse_output=False)
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
             # Apply OneHotEncoding
             row_data = ct.fit_transform(row_data)
-        elif protocol == "icmp":
+        elif protocol == "ICMP":
             columns_to_encode = [0, 1, -2]
             encoder = OneHotEncoder(sparse_output=False)
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
