@@ -181,16 +181,16 @@ while True:
         packet = receive_packet()
         features = extract_features(packet)
 
-192.168.8.216,
-192.168.8.214,
-ICMP,
-98,
-52,
-296880,
-0
+#192.168.8.216,
+#192.168.8.214,
+#ICMP,
+#98,
+#52,
+#296880,
+#0
 
             # Extract specific features and convert to appropriate types
-            data = np.array([features[0], features[1], float(features[3]), features[4], float(features[5])])
+            data = np.array([features[0], features[1], float(features[3]), float(features[4]), float(features[5]), float(features[6])])
             print(f'\nData: {data}\n')
             data_to_encode = data[:, columns_to_encode]
         
