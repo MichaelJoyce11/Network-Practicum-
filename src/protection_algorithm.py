@@ -78,7 +78,7 @@ def extract_features(data):
             eth_header = data[:eth_length]
             eth = unpack('!6s6sH', eth_header)
             eth_protocol = socket.ntohs(eth[2])
-        
+
             # Parse IP packets only
             if eth_protocol == 8:
                 # Parse IP header
@@ -87,25 +87,25 @@ def extract_features(data):
                 version_ihl = iph[0]
                 ihl = version_ihl & 0xF
                 iph_length = ihl * 4
-        
+
                 # Extract IP source and destination addresses
                 src_ip = inet_ntoa(iph[8])
                 dst_ip = inet_ntoa(iph[9])
-        
+
                 # Parse protocol
                 protocol = PROTOCOL_MAP.get(iph[6], "Unknown")
-        
+
                 # Calculate packet size
                 packet_size = len(data)
-        
+
                 # Get current timestamp
                 timestamp = datetime.datetime.now()
                 seconds = timestamp.second
                 microseconds = timestamp.microsecond
-        
+
                 # Set Row Data
                 row_data = None
-        
+
                 #Set appropriate header string to separate packet types
                 if iph[6] == 6:
                     csv_filename_prefix = "tcp_"
@@ -115,7 +115,7 @@ def extract_features(data):
                     csv_filename_prefix = "icmp_"
                 else:
                     csv_filename_prefix = ""
-        
+
                 # Parse TCP packets
                 if iph [6] == 6:
                     tcp_header = data[iph_length+eth_length:iph_length+eth_length+20]
@@ -146,7 +146,7 @@ def extract_features(data):
                     icmph = unpack('!BBH', icmp_header)
                     icmp_type = icmph[0]
                     packet_data = [src_ip, dst_ip, protocol, packet_size, seconds, microseconds, icmp_type]
-        
+
                 return np.array(packet_data), protocol
     except:
         logging.warning(f'Error processing {protocol} packet: {e}')
@@ -223,7 +223,13 @@ icmp_columns_to_encode = [0, 1]
 
 while True:
         packet = receive_packet()
-        features, protocol = extract_features(packet)
+
+        try:
+            features, protocol = extract_features(packet)
+        except TypeError as e:
+            logging.error(f'Erorr extracting features from packet: {e}')
+            logging.info(f'Packet details: {packet}')
+            continue
 
         try:
             if protocol == 'UDP':
@@ -272,7 +278,6 @@ while True:
             continue
 
         src_ip = features[0]
-        print(f'Prediction for protocol {protocol} is: {prediction}')
         # Assuming the classes are encoded as 0 for regular ping and 1 for attack
         if prediction == 1 and src_ip != my_ip:
                 block_ip(src_ip, protocol)
