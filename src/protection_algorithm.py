@@ -151,7 +151,7 @@ def block_ip(ip_address, packet_type):
 # Function to forward regular ping packets
 def forward_packet(packet):
     sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
-
+#To handle TCP and UDP packets for forwarding, you would need to create separate sockets for TCP (socket.SOCK_STREAM) and UDP (socket.SOCK_DGRAM) 
     try:
         # Send the packet to the destination address
         sock.sendto(packet, (destination_address, 0))
