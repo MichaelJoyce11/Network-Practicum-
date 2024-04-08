@@ -150,8 +150,9 @@ for prefix in prefixes:
 
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
 
-            # Apply OneHotEncoding
-            X[prefix] = ct.fit_transform(X[prefix])
+            for i, row in enumerate(X[prefix]):
+                encoded_row = ct.fit_transform([row])  # Assuming ct is initialized properly
+                X[prefix][i] = encoded_row[0]
 
         elif prefix == "tcp":
             X[prefix], y[prefix] = load_tcp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
@@ -159,9 +160,9 @@ for prefix in prefixes:
             encoder = OneHotEncoder(sparse_output=False)
 
             ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
-
-            # Apply OneHotEncoding
-            X[prefix] = ct.fit_transform(X[prefix])
+            for i, row in enumerate(X[prefix]):
+                encoded_row = ct.fit_transform([row])  # Assuming ct is initialized properly
+                X[prefix][i] = encoded_row[0]
 
         elif prefix == "icmp":
             X[prefix], y[prefix] = load_icmp_data(normal_traffic_files[prefix], ddos_traffic_files[prefix])
