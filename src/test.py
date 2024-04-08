@@ -210,5 +210,5 @@ while True:
                 block_ip(src_ip, protocol)
                 print("Here")
         else:
-                forward_ip(src_ip)
+                forward_packet(src_ip)
                 print("Here2")
