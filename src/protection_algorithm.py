@@ -140,27 +140,54 @@ def extract_features(data):
             icmp_type = icmph[0]
             packet_data = [src_ip, dst_ip, protocol, packet_size, seconds, microseconds, icmp_type]
 
-        return np.array(packet_data)
+        return np.array(packet_data), protocol
 
 # Function to block traffic from an IP address
-def block_ip(ip_address, packet_type):
+def block_ip(ip_address, protocol):
     command = ["sudo", "iptables", "-A", "INPUT", "-s", ip_address, "-j", "DROP"]
     subprocess.run(command)
-    logging.warning('Blocked {packet_type} packet from {ip_address}: suspected DDOS traffic')
+    logging.warning('Blocked {protocol} packet from {ip_address}: suspected DDOS traffic')
 
 # Function to forward regular ping packets
-def forward_packet(packet):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
-#To handle TCP and UDP packets for forwarding, you would need to create separate sockets for TCP (socket.SOCK_STREAM) and UDP (socket.SOCK_DGRAM) 
-    try:
-        # Send the packet to the destination address
-        sock.sendto(packet, (destination_address, 0))
-        print("Packet forwarded successfully.")
-    except Exception as e:
-        print("Error forwarding packet:", e)
-    finally:
-        # Close the socket
-        sock.close()
+def forward_packet(packet, features, protocol):
+    if protocol == 'UDP':
+        destination_address = features[2]
+        destination_port = features[3]
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # Send UDP packet
+            sock.sentto(packet, (destination_address, destination_port))
+        except Exception as e:
+            print(f'Error sending packet over UDP: {e}')
+        finally:
+            sock.close()
+    elif protocol == 'TCP':
+        destination_address = features[2]
+        destination_port = features[3]
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            # Establish connection
+            sock.connect((destination_address, destination_port))
+
+            # Send TCP packet
+            sock.send(packet)
+        except Exception as e:
+            print(f'Error sending packet over TCP: {e}')
+        finally:
+            sock.close()
+    elif protocol == 'ICMP':
+        destination_address = features[1]
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        try:
+            # Send ICMP packet
+            sock.sendto(packet, (destination_address, 0))
+        except Exception as e:
+            print(f'Error sending packet over ICMP: {e}')
+        finally:
+            sock.close()
 
 # Get a single received packet
 def receive_packet():
@@ -178,30 +205,39 @@ def receive_packet():
         sock.close()
 
 encoder = OneHotEncoder(sparse_output=False)
-columns_to_encode = [0, 1]
+
+udp_columns_to_encode = [0, 2]
+tcp_columns_to_encode = [0, 2]
+icmp_columns_to_encode = [0, 1]
 
 while True:
         packet = receive_packet()
-        features = extract_features(packet)
+        features, protocol = extract_features(packet)
 
-        # Extract specific features and convert to appropriate types
-        data = np.array([[features[0], features[1], features[3], features[4], features[5], features[6]]])
-        print(f'\nData: {data}\n')
-        ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, columns_to_encode)], remainder='passthrough')
-        # Apply OneHotEncoding
-        data = ct.fit_transform(data)
+        if protocol == 'UDP':
+            print('in udp')
+            continue
+        elif protocol == 'TCP':
+            print('in tcp')
+            continue
+        elif protocol == 'ICMP':
+            # Extract specific features and convert to appropriate types
+            data = np.array([[features[0], features[1], features[3], features[4], features[5], features[6]]])
 
-        print(f'\nEncoded: {data}\n')
-        # Use the trained model to predict packet type
-        prediction = model.predict(data)
-        src_ip = features[0]
+            # Create column transformer for encoding
+            ct = ColumnTransformer(transformers=[('one_hot_encode', encoder, icmp_columns_to_encode)], remainder='passthrough')
+
+            # Apply OneHotEncoding
+            data = ct.fit_transform(data)
+
+            # Use the trained model to predict packet type
+            prediction = model.predict(data)
+            src_ip = features[0]
+
 
         print(f'\nPrediction is: {prediction}\n')
         # Assuming the classes are encoded as 0 for regular ping and 1 for attack
         if prediction == 1 and src_ip != my_ip:
                 block_ip(src_ip, protocol)
-                print("Here")
         else:
-                forward_packet(src_ip)
-                print("Here2")
-
+                forward_packet(packet, features, protocol)
