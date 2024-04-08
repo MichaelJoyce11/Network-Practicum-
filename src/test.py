@@ -181,7 +181,7 @@ while True:
         packet = receive_packet()
         features = extract_features(packet)
 
-        data = [features[0], features[1], float(features[3]), features[4], float(features[5])]
+        data = np.array([features[0], features[1], float(features[3]), features[4], float(features[5])])
         data_to_encode = data[:, columns_to_encode]
 
         data_to_encode = data_to_encode.reshape(-1, 1)
