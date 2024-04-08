@@ -122,20 +122,23 @@ def extract_features(data):
             }
             src_port = tcph[0]
             dst_port = tcph[1]
-            row_data = [src_ip, src_port, dst_ip, dst_port, packet_size, timestamp] + list(flags.values())
+            row = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp] + list(flags.values())
+            features = [row[0], row[1], row[2], row[3], row[5], row[6], row[7:]]
         # Parse UDP packets
         elif iph[6] == 17:
             udp_header = data[iph_length+eth_length:iph_length+eth_length+8]
             udph = unpack('!HHHH', udp_header)
             src_port = udph[0]
             dst_port = udph[1]
-            row_data = [src_ip, src_port, dst_ip, dst_port, packet_size, timestamp]
+            row = [src_ip, src_port, dst_ip, dst_port, protocol, packet_size, timestamp]
+            features = [row[0], row[1], row[2], row[3], row[5], row[6]]
         # Parse ICMP packets
         elif iph[6] == 1:
             icmp_header = data[iph_length+eth_length:iph_length+eth_length+4]
             icmph = unpack('!BBH', icmp_header)
             icmp_type = icmph[0]
-            row_data = [src_ip, dst_ip, packet_size, timestamp, icmp_type]
+            row = [src_ip, dst_ip, protocol, packet_size, timestamp, icmp_type]
+            features = [row[0], row[1], row[3], row[4], row[5]]
 
         if protocol == "UDP":
             columns_to_encode = [0, 2, 5]
