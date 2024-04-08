@@ -181,20 +181,27 @@ while True:
         packet = receive_packet()
         features = extract_features(packet)
 
-        try:
+192.168.8.216,
+192.168.8.214,
+ICMP,
+98,
+52,
+296880,
+0
+
             # Extract specific features and convert to appropriate types
             data = np.array([features[0], features[1], float(features[3]), features[4], float(features[5])])
             print(f'\nData: {data}\n')
             data_to_encode = data[:, columns_to_encode]
-
+        
             data_to_encode = data_to_encode.reshape(-1, 1)
-
+        
             encoded_data = encoder.fit_transform(data_to_encode)
             print(f'\nEncoded: {encoded_data}\n')
             # Use the trained model to predict packet type
             prediction = model.predict(encoded_data)
             src_ip = features[0]
-
+        
             print(f'\nPrediction is: {prediction}\n')
             # Assuming the classes are encoded as 0 for regular ping and 1 for attack
             if prediction == 1 and src_ip != my_ip:
@@ -203,7 +210,3 @@ while True:
             else:
                     forward_ip(src_ip)
                     print("Here2")
-
-            # Continue with your processing using 'data'
-        except (IndexError, TypeError):
-            print(" ")
