@@ -157,7 +157,7 @@ def extract_features(data):
 def block_ip(ip_address, protocol):
     command = ["sudo", "iptables", "-A", "INPUT", "-s", ip_address, "-j", "DROP"]
     subprocess.run(command)
-    logging.warning('Blocked {protocol} packet from {ip_address}: suspected DDOS traffic')
+    logging.warning(f'Blocked {protocol} packet from {ip_address}: suspected DDOS traffic')
 
 # Function to forward regular ping packets
 def forward_packet(packet, features, protocol):
